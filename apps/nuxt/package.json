@@ -1,0 +1,34 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@types/node": "^18",
+    "nuxt": "^3.5.2",
+    "vite-plugin-node-polyfills": "^0.9.0"
+  },
+  "dependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@pdf.js/vue": "workspace:*",
+    "@react-pdf/font": "workspace:*",
+    "@react-pdf/layout": "workspace:*",
+    "@react-pdf/pdfkit": "workspace:*",
+    "@react-pdf/primitives": "workspace:*",
+    "@react-pdf/render": "workspace:*",
+    "@react-pdf/types": "workspace:*",
+    "@react-pdf/yoga": "workspace:*",
+    "@vueuse/core": "^10.1.2",
+    "rollup-plugin-ignore": "^1.0.10",
+    "rollup-plugin-inject": "^3.0.2",
+    "rollup-plugin-polyfill-node": "^0.12.0",
+    "vite-compatible-readable-stream": "^3.6.1",
+    "vite-plugin-replace": "^0.1.1"
+  }
+}

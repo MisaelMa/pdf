@@ -1,0 +1,57 @@
+{
+    "version": "0.1.0",
+    "name": "@pdf.js/vue",
+    "license": "MIT",
+    "files": [
+        "dist",
+        "src"
+    ],
+    "engines": {
+        "node": ">=10"
+    },
+    "scripts": {
+        "start": "tsdx watch",
+        "build": "tsdx build",
+        "test": "tsdx test",
+        "lint": "tsdx lint",
+        "prepare2": "tsdx build",
+        "size": "size-limit",
+        "analyze": "size-limit --why"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "tsdx lint"
+        }
+    },
+    "prettier": {
+        "printWidth": 80,
+        "semi": true,
+        "singleQuote": true,
+        "trailingComma": "es5"
+    },
+    "author": "MisaelMa",
+    "module": "dist/vue.esm.js",
+    "size-limit": [
+        {
+            "path": "dist/vue.cjs.production.min.js",
+            "limit": "10 KB"
+        },
+        {
+            "path": "dist/vue.esm.js",
+            "limit": "10 KB"
+        }
+    ],
+    "devDependencies": {
+        "tsdx": "^0.14.1"
+    },
+    "dependencies": {
+        "@vue/runtime-core": "^3.3.4",
+        "vue": "^3.3.4",
+        "@react-pdf/font": "workspace:*",
+        "@react-pdf/layout": "workspace:*",
+        "@react-pdf/pdfkit": "workspace:*",
+        "@react-pdf/primitives": "workspace:*",
+        "@react-pdf/render": "workspace:*",
+        "@react-pdf/types": "workspace:*"
+    }
+}
