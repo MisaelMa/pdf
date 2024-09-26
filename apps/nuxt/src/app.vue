@@ -6,3 +6,9 @@
 <script setup>
 
 </script>
+<style>
+body {
+  margin: 0 auto;
+  
+}
+</style>

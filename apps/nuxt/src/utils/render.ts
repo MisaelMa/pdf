@@ -1,4 +1,4 @@
-import FontStore from "@react-pdf/font/src";
+/* import FontStore from "@react-pdf/font/src";
 import PDFDocument from "@react-pdf/pdfkit/src";
 import createRenderer from "./renderer";
 import layoutDocument from "@react-pdf/layout/src";
@@ -46,3 +46,4 @@ export const toBlob = async (container: any = {}) => {
     });
   });
 };
+ */

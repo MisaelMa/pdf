@@ -15,8 +15,8 @@ export default defineNuxtConfig({
     externalVue: true,
   },
   alias: {
-    "@pdf.js/vue": "../../node_modules/@pdf.js/vue/src",
-    "@pdf.js/vue/*": "../../node_modules/@pdf.js/vue/src/*",
+  /*   "@pdf.js/vue": "../../node_modules/@pdf.js/vue/src",
+    "@pdf.js/vue/*": "../../node_modules/@pdf.js/vue/src/*", */
   },
   vite: {
     plugins: [
@@ -32,7 +32,7 @@ export default defineNuxtConfig({
       }),
       /*    commonjs(),
       nodeResolve({ browser: true, preferBuiltins: false }), */
-      nodePolyfills({
+     /*  nodePolyfills({
         // To exclude specific polyfills, add them to this list.
         exclude: [
           "fs", // Excludes the polyfill for `fs` and `node:fs`.
@@ -45,7 +45,7 @@ export default defineNuxtConfig({
         },
         // Whether to polyfill `node:` protocol imports.
         protocolImports: true,
-      }),
+      }), */
 
       /* nodePolyfills({
         include: [/node_modules\/.+\.js/, /pdfkit\/src\/.*\.js/],

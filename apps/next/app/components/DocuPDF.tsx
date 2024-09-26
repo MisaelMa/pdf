@@ -1,7 +1,6 @@
 "use client";
 
 import { Document, Page, pdfjs } from "react-pdf";
-import { PDFViewer, pdf } from "@react-pdf/renderer/src";
 import React, { useEffect, useState } from "react";
 
 import Quixote from "./PDFSSR";
@@ -132,9 +131,7 @@ const PDFViewerWithNoSSR = ({ value }: any) => {
 
   return (
     <Wrapper>
-      {/* <PDFViewer>
-        <Quixote />
-      </PDFViewer> */}
+      
       <DocumentWrapper>
         <PdfPage pdf={render.value}></PdfPage>
       </DocumentWrapper>

@@ -1,9 +1,9 @@
-import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 
 import { pdf } from './index';
 import queue from 'queue';
 
-const usePDF = ({ document }: any) => {
+const usePDF = ({ document = null }: any) => {
   const pdfInstance = ref<any>(null);
 
   const state = reactive({
@@ -45,7 +45,7 @@ const usePDF = ({ document }: any) => {
     //console.log('montado', pdfInstance.value);
 
     pdfInstance.value.on('change', queueDocumentRender);
-    pdfInstance.value.updateContainer(document);
+    //document && pdfInstance.value.updateContainer(document);
 
     renderQueue.on('error', onRenderFailed);
     renderQueue.on('success', onRenderSuccessful);
@@ -62,17 +62,19 @@ const usePDF = ({ document }: any) => {
     }
   });
 
-  const update = async () => {
+  const update = async (doc?: any) => {
     //console.log('AQUIE EN UPDATE');
     if (!pdfInstance.value) {
-      //pdfInstance.value = await pdf();
+      pdfInstance.value = await pdf();
     }
     //console.log(pdfInstance.value);
 
-    await pdfInstance.value?.updateContainer(document);
+    return doc && await pdfInstance.value?.updateContainer(doc);
   };
 
-  return { state, update };
+  const reference = computed(() => pdfInstance.value);
+
+  return { state, update, reference };
 };
 
 export default usePDF;

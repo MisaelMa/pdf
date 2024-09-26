@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
-} from "@react-pdf/renderer/src/node";
+} from "@react-pdf/renderer";
 
 /* import {
   Document,
@@ -24,11 +24,11 @@ const Quixote = () => {
         style={styles.body}
         bookmark="Harry Potter and the Philosopher's Stone"
       >
-        <Text bookmark={{ title: "Chapter 1: The Boy Who Lived", fit: true }}>
-          hola
+        <Text >
+          
         </Text>
         <Text style={styles.header} fixed>
-          ~ Created with react-pdf ~
+          ~ Created with react-pdf ~ misael misael
         </Text>
         <Text style={styles.title}>Don Quijote de la Mancha</Text>
         <Text style={styles.author}>Miguel de Cervantes</Text>

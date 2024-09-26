@@ -1,4 +1,5 @@
-import { VNodeTypes } from '@vue/runtime-core';
+import { VNode, Component } from '@vue/runtime-core';
+import { render } from 'vue';
 interface Extract extends Record<string, any> {}
 export async function extractDataFromVNode(vnode: Extract) {
   if (!vnode) {
@@ -15,12 +16,13 @@ export async function extractDataFromVNode(vnode: Extract) {
     };
   }
 
-  const { style = {}, name = '', ...rest } = props || {};
+  const { style = {}, name = '', ref, ...rest } = props || {};
   const extractedData: any = {
     box: {},
     type: name, //  ? type.toUpperCase(): type,
     style: style ?? {},
     props: rest,
+    ref: ref,
     children: [],
   };
 
@@ -37,9 +39,9 @@ export async function extractDataFromVNode(vnode: Extract) {
 }
 export function createVNode(type: any, show: boolean = false) {
   const newCompone: Record<string, any> = {};
-  const components =
-    type && type.setup ? type.setup({}, { expose: () => {} }) : {};
-
+  console.log('type', type);
+  const components =type && type.setup ? type.setup({}, { expose: () => {}, }) : {};
+// console.log('components', type.render({}, {}, {}, {  }, {}, {}));
   for (let d of Object.keys(components)) {
     if (components[d].render) {
       newCompone[d] = createVNode(components[d]);
@@ -52,17 +54,17 @@ export function createVNode(type: any, show: boolean = false) {
       ? type.render({}, {}, {}, { ...newCompone }, {}, {})
       : {};
   if (show) {
-    console.log(ren);
+    console.log("render", ren);
   }
   return ren;
 }
 
 export async function createRenderer(component: any) {
-  console.log('component', component);
+  //console.log('component', component);
 
   const vNode = createVNode(component.type || component, true);
   if (!Object.keys(vNode).length) {
-    console.log('vNode if', vNode);
+   // console.log('vNode if', vNode);
 
     return {
       type: 'ROOT',
@@ -71,12 +73,13 @@ export async function createRenderer(component: any) {
       },
     };
   }
-  console.log('vNode', vNode);
+ // console.log('vNode', vNode);
 
   const document = await extractDataFromVNode(vNode);
 
-  console.log('document', document);
+ // console.log('document', document);
   const container = {
+    render: vNode,
     type: 'ROOT',
     document,
   };
