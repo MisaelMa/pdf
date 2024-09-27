@@ -6,18 +6,18 @@
     height: '100vh',
     backgroundColor: '#525659',
   }">
+  <input v-model="title">
     <PDF size="A4">
       <Document>
       <template v-for="i in 3">
         <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
           <Text :style="styles.header" fixed="true">
-            ~ Created with react-pdf ~
+            ~ Created with react-pdfssww
+            {{ title }}
           </Text>
           <Text :style="styles.title">Don Quijote de la Mancha</Text>
           <Text :style="styles.author">Miguel de Cervantes</Text>
-          <Image :style="styles.image">
-            <img src="../public/quijote1.png" :style="styles.image" />
-          </Image>
+          <Image :style="styles.image" src="../quijote1.png"/>
 
           <Text :style="styles.subtitle">
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
@@ -151,6 +151,8 @@ import PDF, { Document, Page, Text, StyleSheet, Image } from "../components/tags
 defineOptions({
   components: {},
 });
+
+const title = ref('Don Quijote de la Mancha');
 
 const styles = StyleSheet.create({
   body: {
