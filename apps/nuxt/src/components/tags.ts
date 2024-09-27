@@ -10,6 +10,7 @@ import {
   type VNodeNormalizedChildren,
   type VNodeArrayChildren,
   type VNode,
+  
 } from "vue";
 type VNodePDF = {
   children: VNode[];
@@ -105,7 +106,8 @@ export const Document = defineComponent({
     const height = "1065px";
     const slots = useSlots();
     const node = fetch_node(slots);
-    const pages = node[0].children.map((pageSlot: VNode) => {
+    console.log(node, "DOCUMENT");
+    /* const pages = node[0].children.map((pageSlot: VNode) => {
       console.log(pageSlot);
       pageSlot.props = {
         ...pageSlot.props,
@@ -117,7 +119,7 @@ export const Document = defineComponent({
         },
       };
       return pageSlot;
-    });
+    }); */
 
     return () =>
       h(
@@ -137,27 +139,40 @@ export const Document = defineComponent({
       );
   },
 });
-
 export const Page = defineComponent({
   name: "Page",
   setup(_props) {
     const id = useId();
+    const slots = useSlots(); // Acceso a los slots reactivos
+    const context = getCurrentInstance();
 
-    const slots = useSlots();
-    const node = fetch_node(slots);
-    console.log("elements", node);
+    const update = () => {
+      console.log("UPDATE: Reactivity detected in slot content", context?.vnode?.el?.id);
+      console.log("UPDATE: Slot content", memorizedSlot.value);
+    };
+
+    const memorizedSlot = computed(() => {
+      return fetch_node(context?.slots as Slots)
+    });
+
+    
+    watch(memorizedSlot, () => {
+      update(); // Llamado cuando `memorizedSlot` cambia
+    });
+
     return () =>
       h(
         "div",
         {
           id,
           "data-name": "page",
-          style: { backgroundColor: "white" },
+          style: { backgroundColor: "red" },
         },
         slots.default ? slots.default() : []
       );
   },
 });
+
 
 export const Image = defineComponent({
   name: "Image",
