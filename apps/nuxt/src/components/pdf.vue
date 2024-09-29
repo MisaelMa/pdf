@@ -169,8 +169,8 @@
 </template>
 
 <script setup lang="ts">
-import { Page, Document } from "./Elements";
-import {  Image, StyleSheet } from "./tags";
+import { Page, Document, Image } from "./Elements";
+import {   StyleSheet } from "./tags";
 import { Text } from "../components/Elements";
 import Subtitle from "./Subtitle.vue";
 import { onMounted, watchEffect } from 'vue'

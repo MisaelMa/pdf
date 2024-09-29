@@ -2,7 +2,7 @@
        <Text>
          hola
         AQUI amir
-        <span :style="{color: 'white'}">
+        <span :style="{color: 'black'}">
             {{ text }}
         </span>
        </Text>

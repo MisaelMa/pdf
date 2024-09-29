@@ -10,34 +10,7 @@ import { fetch_node } from "../utils";
 
 
 
-export const Image = defineComponent({
-  name: "Image",
-  props: {
-    src: { type: String, required: true },
-    alt: { type: String, required: false },
-    style: { type: Object, required: false },
-  },
-  setup(props) {
-    const { textAlign } = props.style;
-    return () =>
-      h(
-        "div",
-        {
-          "data-name": "image",
-          style: {
-            textAlign,
-          },
-        },
-        h("img", {
-          src: props.src,
-          alt: props?.alt || "image",
-          style: {
-            ...props.style,
-          },
-        })
-      );
-  },
-});
+
 
 //h("div", { "data-name": "DOCUMENT", style: });
 
