@@ -1,5 +1,7 @@
 import type { Slots } from "vue";
 import { fetch_node } from "../../utils";
+import { useEventBus } from "~/hook/useEventBus"
+import { generatePdfFromJson } from "~/utils/pdf-json";
 export const Document = defineComponent({
     name: "Document",
     setup(_props) {
@@ -9,18 +11,24 @@ export const Document = defineComponent({
       const slots = useSlots();
       const context = getCurrentInstance();
 
+      const { on, off } = useEventBus('trigger'); // Usar el event bus
+
+     
       const memorizedSlot = computed(() => {
-        return fetch_node(context?.slots as Slots)
+        return 
       });
   
-      const update = () => {
+      const update = (v: any) => {
+       
         console.log("UPDATE Document: Reactivity detected in slot content", context?.vnode?.el?.id);
-        console.log("UPDATE Document: Slot content", memorizedSlot.value);
-      };
-      watch(memorizedSlot, () => {
-        update(); // Llamado cuando `memorizedSlot` cambia
-      });
+        console.log("UPDATE Document: Slot content", context?.vnode?.el);
+        console.log(htmlToJson(context?.vnode?.el));
 
+        console.log(generatePdfFromJson(htmlToJson(context?.vnode?.el)));
+      };
+   
+      on(update)
+      
       /* const pages = node[0].children.map((pageSlot: VNode) => {
         console.log(pageSlot);
         pageSlot.props = {

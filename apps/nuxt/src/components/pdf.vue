@@ -170,7 +170,8 @@
 
 <script setup lang="ts">
 import { Page, Document } from "./Elements";
-import {  Image, Text, StyleSheet } from "./tags";
+import {  Image, StyleSheet } from "./tags";
+import { Text } from "../components/Elements";
 import Subtitle from "./Subtitle.vue";
 import { onMounted, watchEffect } from 'vue'
 const props = defineProps<{

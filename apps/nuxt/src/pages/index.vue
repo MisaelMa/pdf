@@ -12,8 +12,10 @@
         <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
           <Text :style="styles.header" fixed="true">
             ~ Created with react-pdfssww
-            {{ title }}
           </Text>
+          
+          <Caman :text="title"></Caman>
+
           <Text :style="styles.title">Don Quijote de la Mancha</Text>
           <Text :style="styles.author">Miguel de Cervantes</Text>
           <Image :style="styles.image" src="../quijote1.png" />
@@ -22,7 +24,7 @@
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha
           </Text>
-          <Text :style="styles.text">
+     <!--      <Text :style="styles.text">
             Hechas, pues, estas prevenciones, no quiso aguardar más tiempo a poner
             en efeto su pensamiento, apretándole a ello la falta que él pensaba que
             hacía en el mundo su tardanza, según eran los agravios que pensaba
@@ -136,9 +138,9 @@
             Mancha, dejando las ociosas plumas, subió sobre su famoso caballo
             Rocinante y comenzó a caminar por el antiguo y conocido Campo de
             Montiel.
-          </Text>
+          </Text> -->
         </Page>
-        <template v-for="i in 3">
+        <template v-if="false" v-for="i in 3">
           <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
             <Text :style="styles.header" fixed="true">
               ~ Created with react-pdfssww
@@ -274,13 +276,14 @@
 </template>
 <script setup lang="ts">
 import { defineOptions } from "vue";
-import { PDF, Page, Document } from "../components/Elements";
-import { Text, StyleSheet, Image } from "../components/tags";
+import { PDF, Text, Page, Document } from "../components/Elements";
+import {  StyleSheet, Image } from "../components/tags";
+import Caman from "~/components/Caman.vue";
 defineOptions({
   components: {},
 });
 
-const title = ref('Don Quijote de la Mancha');
+const title = ref('Amir');
 
 const styles = StyleSheet.create({
   body: {

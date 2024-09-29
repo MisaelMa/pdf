@@ -12,11 +12,12 @@
     "@nuxt/devtools": "latest",
     "@types/node": "^18",
     "nuxt": "^3.13.2",
-    "vue": "^3.5.9",
-    "vite-plugin-node-polyfills": "^0.9.0"
+    "vite-plugin-node-polyfills": "^0.9.0",
+    "vue": "^3.5.9"
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@pdf.js/kit": "workspace:*",
     "@pdf.js/vue": "workspace:*",
     "@react-pdf/font": "^2.5.1",
@@ -24,6 +25,7 @@
     "@react-pdf/pdfkit": "^3.1.10",
     "@react-pdf/render": "^3.4.4",
     "@vueuse/core": "^10.1.2",
+    "pdf-lib": "^1.17.1",
     "queue": "^6.0.1",
     "rollup-plugin-ignore": "^1.0.10",
     "rollup-plugin-inject": "^3.0.2",

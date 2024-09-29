@@ -44,7 +44,6 @@ export const Image = defineComponent({
 export const G = h("div", { "data-name": "G" });
 export const Svg = h("div", { "data-name": "SVG" });
 export const View = h("div", { "data-name": "VIEW" });
-export const Text = h("p", { "data-name": "text" });
 export const Link = h("div", { "data-name": "link" });
 
 export const Note = h("div", { "data-name": "note" });
