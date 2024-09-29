@@ -273,9 +273,9 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, defineOptions, watchEffect } from "vue";
-//import Document from '../components/Document';
-import PDF, { Document, Page, Text, StyleSheet, Image } from "../components/tags";
+import { defineOptions } from "vue";
+import { PDF, Page, Document } from "../components/Elements";
+import { Text, StyleSheet, Image } from "../components/tags";
 defineOptions({
   components: {},
 });

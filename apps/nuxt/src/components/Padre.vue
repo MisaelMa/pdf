@@ -2,9 +2,9 @@
     <div>
     <input v-model="title" type="text" />
     <br>  
-    <child-component>
+    <ChildComponent>
         <PDF :title="title" ref="pdf"/>
-      </child-component>
+      </ChildComponent>
     </div>
   </template>
   
