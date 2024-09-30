@@ -30,8 +30,8 @@
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha
           </Text> -->
-          <Text :style="styles.text">
-            Hechas, pues, estas prevenciones, no quiso aguardar más tiempo a poner
+          <Text style="text-align: right">
+            Hechas, pues, estas prevenciones, <span style="color:red">no</span>  quiso aguardar más tiempo a poner
             en efeto su pensamiento, apretándole a ello la falta que él pensaba que
             hacía en el mundo su tardanza, según eran los agravios que pensaba
             deshacer, tuertos que enderezar, sinrazones que emendar y abusos que
@@ -41,6 +41,9 @@
             subió sobre Rocinante, puesta su mal compuesta celada, embrazó su
             adarga, tomó su lanza y por la puerta falsa de un corral salió al campo
             con grandísimo contento y alborozo de ver con cuánta facilidad había
+           
+          </Text>
+          <Text>
             dado principio a su buen deseo. Mas apenas se vio en el campo cuando le
             asaltó un pensamiento terrible, y tal, que por poco le hiciera dejar la
             comenzada empresa; y fue que le vino a la memoria que no era armado
