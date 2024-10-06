@@ -18,7 +18,6 @@ export const G = h("div", { "data-name": "G" });
 export const Svg = h("div", { "data-name": "SVG" });
 export const View = h("div", { "data-name": "VIEW" });
 export const Link = h("div", { "data-name": "link" });
-
 export const Note = h("div", { "data-name": "note" });
 export const Path = h("div", { "data-name": "path" });
 export const Rect = h("div", { "data-name": "rect" });

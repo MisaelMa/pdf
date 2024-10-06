@@ -1,6 +1,5 @@
 
 export  function getServerSideProps(src: string): any {
-    console.log(process)
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
     const imageUrl = new URL(src, baseUrl).href;
   
@@ -18,7 +17,6 @@ export const Image = defineComponent({
       const { textAlign } = props.style;
 
       const fullUrl = getServerSideProps(props.src);
-      console.log(fullUrl,"fullUrl");
       return () =>
         h(
           "div",

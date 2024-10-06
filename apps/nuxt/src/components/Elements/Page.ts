@@ -34,7 +34,6 @@ export const Page = defineComponent({
       watch(memorizedSlot, () => {
         update(); // Llamado cuando `memorizedSlot` cambia
       });
-      console.log("Page aqui",  props);
   
       return () =>
         h(

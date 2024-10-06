@@ -30,9 +30,12 @@
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha
           </Text> -->
-          <Text style="text-align: right">
-            Hechas, pues, estas prevenciones, <span style="color:red">no</span>  quiso aguardar más tiempo a poner
-            en efeto su pensamiento, apretándole a ello la falta que él pensaba que
+          <Text>
+            Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
+            D. Quijote de la Mancha, e 333333333333333
+          </Text>
+          <Text>
+            Hechas, pues, estas prevenciones, <Span style="color:red; font-size: 40px">ssss</Span> quiso aguardar más tiempo a poner en efeto su pensamiento, apretándole a ello la falta que él pensaba que
             hacía en el mundo su tardanza, según eran los agravios que pensaba
             deshacer, tuertos que enderezar, sinrazones que emendar y abusos que
             mejorar y deudas que satisfacer. Y así, sin dar parte a persona alguna
@@ -43,7 +46,7 @@
             con grandísimo contento y alborozo de ver con cuánta facilidad había
            
           </Text>
-          <Text>
+   <!--        <Text>
             dado principio a su buen deseo. Mas apenas se vio en el campo cuando le
             asaltó un pensamiento terrible, y tal, que por poco le hiciera dejar la
             comenzada empresa; y fue que le vino a la memoria que no era armado
@@ -58,7 +61,7 @@
             teniendo lugar, que lo fuesen más que un arminio; y con esto se quietó18
             y prosiguió su camino, sin llevar otro que aquel que su caballo quería,
             creyendo que en aquello consistía la fuerza de las aventuras
-          </Text>
+          </Text> -->
         <!--   <Text :style="styles.text">
             Es, pues, de saber, que este sobredicho hidalgo, los ratos que estaba ocioso (que eran los
             más del año) se daba a leer libros de caballerías con tanta afición y gusto, que olvidó casi
@@ -149,7 +152,7 @@
             Montiel.
           </Text> -->
         </Page>
-        <template v-if="true" v-for="i in 3">
+        <template v-if="false" v-for="i in 3">
           <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
             <Text :style="styles.header" fixed="true">
               ~ Created with react-pdfssww
@@ -287,7 +290,7 @@
 </template>
 <script setup lang="ts">
 import { defineOptions } from "vue";
-import { PDF, Text, Page, Document, Image } from "../components/Elements";
+import { PDF, Text, Page, Document, Image, Span } from "../components/Elements";
 import {  StyleSheet } from "../components/tags";
 import Caman from "~/components/Caman.vue";
 import { usePDF } from "~/hook/usePDF";

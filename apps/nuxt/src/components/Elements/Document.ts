@@ -20,9 +20,9 @@ export const Document = defineComponent({
   
       const update = async (v: any) => {
        
-        console.log("UPDATE Document: Reactivity detected in slot content", context?.vnode?.el?.id);
-        console.log("UPDATE Document: Slot content", context?.vnode?.el);
-        console.log(htmlToJson(context?.vnode?.el));
+        //console.log("UPDATE Document: Reactivity detected in slot content", context?.vnode?.el?.id);
+        //console.log("UPDATE Document: Slot content", context?.vnode?.el);
+        //console.log(htmlToJson(context?.vnode?.el));
         const r = await generatePdfFromJson(htmlToJson(context?.vnode?.el))
         pdf.value.pdfBytes = r;
       };

@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit"; // Para fuentes personalizadas
 
 const hexToRgb = (hex: string) => {
@@ -29,9 +29,9 @@ export async function generatePdfFromJson(jsonData: any): Promise<Uint8Array> {
 }
 
 // Función para procesar una página del JSON
-async function processPage(jsonPage: any, doc: any, page: any, font: any) {
+async function processPage(jsonPage: any, doc: any, page: PDFPage, font: any) {
  for (const element of jsonPage.children) {
-    console.log(element);
+ //   console.log(element);
     if (element.tag === "text" || element.tag === "span") {
       await processTextElement(element, page, font);
     } else if (element.tag === "image") {
@@ -65,7 +65,7 @@ function processText(page: any, text: string, font: any) {
         y,
     }
 }
-function processTextElement(element: any, page: any, font: any) {
+function processTextElement(element: any, page: PDFPage, font: any) {
   const content = element.children.map((child: any) => child.content).join(" ");
   const fontSize = parseInt(element.attributes?.style?.fontSize) || 12;
   const color = element.attributes?.style?.color
@@ -77,24 +77,25 @@ function processTextElement(element: any, page: any, font: any) {
 
   const pageWidth = page.getWidth();
   const pageHeight = page.getHeight();
-  console.log(`
+/*   console.log(`
     pageWidth: ${pageWidth},
     pageHeight: ${pageHeight},
     `)
   console.log(`
     x: ${x},
     y: ${y},
- `)
+ `) */
  const pt = processText(page, content, font);
- console.log(`
+/*  console.log(`
     x: ${pt.x},
     y: ${pt.y},
- `)
+ `) */
   page.drawText(content, {
     x: pt.x,
     y: pt.y,
     size: fontSize,
     color: rgb(0, 0, 0),
+    
   });
 }
 

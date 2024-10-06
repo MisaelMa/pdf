@@ -9,7 +9,7 @@ interface JsonNode {
   }
 
   function extractCoordinates(element: HTMLElement) {
-    console.log("extractCoordinates", element);
+  //  console.log("extractCoordinates", element);
       // Obtener las coordenadas del elemento
   const rect = element.getBoundingClientRect();
 

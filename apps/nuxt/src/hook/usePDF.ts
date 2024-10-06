@@ -18,6 +18,8 @@ export const usePDF = () => {
         pdf.value.pdfBytes = pdfBytes;
  */        download_pdf(pdf.value.pdfBytes as BlobPart, "generated.pdf", "application/pdf");
     }
+
+    
     return {
         pdf,
         download
