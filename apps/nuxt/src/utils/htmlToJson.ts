@@ -1,3 +1,5 @@
+import type { RendererElement } from "vue";
+
 interface JsonNode {
     tag: string;
     attributes?: { [key: string]: any };
@@ -47,7 +49,7 @@ interface JsonNode {
     return styles;
   }
   
-  export function htmlToJson(element: HTMLElement): JsonNode {
+  export function htmlToJson(element: RendererElement): JsonNode {
     const obj: JsonNode = {
       tag: element.getAttribute('data-name') || element.tagName.toLowerCase(),
       children: [],

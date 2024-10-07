@@ -34,8 +34,12 @@
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha, e 333333333333333
           </Text>
-          <Text>
-            Hechas, pues, estas prevenciones, <Span style="color:red; font-size: 40px">ssss</Span> quiso aguardar más tiempo a poner en efeto su pensamiento, apretándole a ello la falta que él pensaba que
+          <Text style="text-align: left;">
+            Hechas, pues, estas prevenciones, <Span style="color:red; font-size: 40px">ssss</Span> 
+            <Span style="color:blue; font-size: 40px">Test</Span>
+            <Span>This is <strong>important</strong> and <a href="#">a link {{ title }}</a>.</Span>
+          
+            quiso aguardar más tiempo a poner en efeto su pensamiento, apretándole a ello la falta que él pensaba que
             hacía en el mundo su tardanza, según eran los agravios que pensaba
             deshacer, tuertos que enderezar, sinrazones que emendar y abusos que
             mejorar y deudas que satisfacer. Y así, sin dar parte a persona alguna
@@ -43,7 +47,7 @@
             era uno de los calurosos del mes de Julio, se armó de todas sus armas,
             subió sobre Rocinante, puesta su mal compuesta celada, embrazó su
             adarga, tomó su lanza y por la puerta falsa de un corral salió al campo
-            con grandísimo contento y alborozo de ver con cuánta facilidad había
+            con grandísimo contento y alborozo de ver con cuánta facilidad había {{ title }} 
            
           </Text>
    <!--        <Text>

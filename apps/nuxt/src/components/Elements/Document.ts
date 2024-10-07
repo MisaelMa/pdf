@@ -1,4 +1,4 @@
-import type { Slots } from "vue";
+import type { ComponentInternalInstance, Slots } from "vue";
 import { fetch_node } from "../../utils";
 import { useEventBus } from "~/hook/useEventBus"
 import { generatePdfFromJson } from "~/utils/pdf-json";
@@ -10,7 +10,7 @@ export const Document = defineComponent({
       const height = "1065px";
       const id = useId();
       const slots = useSlots();
-      const context = getCurrentInstance();
+      const context: ComponentInternalInstance = getCurrentInstance();
       const { pdf  } = usePDF();
       const { on, off } = useEventBus('trigger'); // Usar el event bus
 
@@ -53,6 +53,7 @@ export const Document = defineComponent({
           {
             id,
             "data-name": "DOCUMENT",
+            contenteditable: "true",
             style: {
               width: "100%",
               height: height,

@@ -3,6 +3,6 @@ export const Span = defineComponent({
     const slots = useSlots();
     const id = useId();
 
-    return () => h("span", { "data-name": "span" }, slots.default?.());
+    return () => h("span", {id, "data-name": "span", style:{ lineHeight: .4 } }, slots.default?.());
   },
 }); // h("div", { "data-name": "SPAN" });
