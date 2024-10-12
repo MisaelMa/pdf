@@ -29,25 +29,33 @@ export function splitTextWithoutSpans(elements, containerWidth) {
          const words = node.children.split(/(\s+)/);
          let line_local = ''; // Acumular texto de la línea
 
-          words.forEach((word) => {
+          words.forEach((word, i) => {
              const wordWidth = getTextWidth(word, fontSize, containerWidth);
              const cu = Number(currentWidth) + Number(wordWidth);
-             if (cu > containerWidth) {
-                 // Si agregar la palabra excede el ancho, cerramos la línea actual
+       
+
+             if (cu >= containerWidth) {
                  if (line_local.trim().length > 0) {
-                        nodeParagraphs.children.push({
-                            type: "text",
-                            children: line_local,
-                        });
-                        lines.push({...nodeParagraphs});
-                        nodeParagraphs.children = [];
-                 }
-                 line_local = word
-                 currentWidth = wordWidth; 
-             } else {
-                 line_local += word 
-                 currentWidth += wordWidth; 
+                  nodeParagraphs.children.push({
+                      type: "text",
+                      children: line_local,
+                  });
+                  lines.push({...nodeParagraphs});
+                  nodeParagraphs.children = [];
+                  line_local = ''
+                  currentWidth = 0
+                }
              }
+             line_local += word 
+             currentWidth += wordWidth;
+             if (i === words.length - 1) {
+              nodeParagraphs.children.push({
+                type: "text",
+                children: line_local.trim(),
+              });
+              lines.push({...nodeParagraphs});
+              nodeParagraphs.children = [];
+            }
          }); 
 
        
@@ -70,3 +78,96 @@ export function splitTextWithoutSpans(elements, containerWidth) {
     const averageCharWidth = (containerWidth / 105) * (fontSize / 16);
     return text.length * averageCharWidth;
   }
+
+
+  interface LineContent {
+    type: 'paragraph';
+    line: number;
+    children: Array<{ element: string; value: string }>;
+  }
+  
+  interface LineContent {
+    type: 'paragraph';
+    line: number;
+    children: Array<{ element: string; value: string }>;
+  }
+  
+  export class LineBreaker {
+    private htmlContent: string;
+    private pageWidth: number;
+    private defaultCharWidth: number = 7; // Ancho promedio de un carácter en píxeles
+  
+    constructor(htmlContent: string, pageWidth: number) {
+      this.htmlContent = htmlContent;
+      this.pageWidth = pageWidth;
+    }
+  
+    // Función que calcula el ancho estimado del texto en píxeles
+    private getTextWidth(text: string): number {
+      return text.length * this.defaultCharWidth;
+    }
+  
+    // Eliminar etiquetas HTML y procesar el texto
+    private extractTextFromHtml(): string[] {
+      const regex = /<[^>]*>(.*?)<\/[^>]*>/g;
+      let match;
+      const texts: string[] = [];
+  
+      // Reemplazamos las etiquetas HTML por nada y extraemos el texto
+      match = this.htmlContent.replace(/<[^>]+>/g, match => {
+        const text = match.replace(/<\/?[^>]+(>|$)/g, ""); // Eliminamos las etiquetas HTML
+        if (text.trim()) {
+          texts.push(text); // Almacenamos solo texto significativo
+        }
+        return '';
+      });
+  
+      return texts;
+    }
+  
+    public breakText(): LineContent[] {
+      const lines: LineContent[] = [];
+      let currentLine: { type: 'paragraph'; line: number; children: Array<{ element: string; value: string }> } = {
+        type: 'paragraph',
+        line: 1,
+        children: []
+      };
+  
+      let currentLineWidth = 0;
+  
+      // Extraemos el texto sin etiquetas HTML
+      const texts = this.extractTextFromHtml();
+  
+      texts.forEach(text => {
+        const textWidth = this.getTextWidth(text);
+  
+        // Si la línea excede el ancho de la página, agregamos la línea actual y empezamos una nueva
+        if (currentLineWidth + textWidth > this.pageWidth) {
+          lines.push(currentLine);
+          currentLine = {
+            type: 'paragraph',
+            line: currentLine.line + 1,
+            children: []
+          };
+          currentLineWidth = 0;
+        }
+  
+        // Agregamos el texto a la línea actual
+        currentLine.children.push({
+          element: 'text',
+          value: text
+        });
+        currentLineWidth += textWidth;
+      });
+  
+      // Agregamos la última línea si tiene contenido
+      if (currentLine.children.length > 0) {
+        lines.push(currentLine);
+      }
+  
+      return lines;
+    }
+  }
+  
+
+  

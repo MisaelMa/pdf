@@ -63,6 +63,7 @@ export async function createRenderer(component: any) {
   //console.log('component', component);
 
   const vNode = createVNode(component.type || component, true);
+  return vNode;
   if (!Object.keys(vNode).length) {
    // console.log('vNode if', vNode);
 
@@ -73,6 +74,7 @@ export async function createRenderer(component: any) {
       },
     };
   }
+  return vNode
  // console.log('vNode', vNode);
 
   const document = await extractDataFromVNode(vNode);

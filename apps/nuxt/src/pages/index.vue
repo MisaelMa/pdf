@@ -5,6 +5,10 @@
       <input v-model="title">
       <button @click="download()" >Download</button>
      </div>
+     {{ sizePage }}
+     <select v-model="sizePage">
+        <option v-for="page in pageNames" :key="page" :value="page">{{ page }}</option>
+     </select>
 
   <div :style="{
     display: 'flex',
@@ -13,12 +17,12 @@
     height: '100vh',
     backgroundColor: '#525659',
   }">
-    <PDF size="A4">
+    <PDF :size="sizePage">
       <Document>
         <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
-          <Text :style="styles.header" fixed="true">
+         <!--  <Text :style="styles.header" fixed="true">
             ~ Created with react-pdfssww
-          </Text>
+          </Text> -->
           
         <!--   <Caman :text="title"></Caman>
 
@@ -30,16 +34,13 @@
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha
           </Text> -->
-          <Text>
+         <!--  <Text>
             Capítulo I: Que trata de la condición y ejercicio del famoso hidalgo
             D. Quijote de la Mancha, e 333333333333333
-          </Text>
-          <Text style="text-align: left;">
-            Hechas, pues, estas prevenciones, <Span style="color:red; font-size: 40px">ssss</Span> 
+          </Text> -->
+          <Text style="text-align: left;">Hechas, pues, estas prevenciones, <Span style="color:red; font-size: 40px">ssss</Span> 
             <Span style="color:blue; font-size: 40px">Test</Span>
-            <Span>This is <strong>important</strong> and <a href="#">a link {{ title }}</a>.</Span>
-          
-            quiso aguardar más tiempo a poner en efeto su pensamiento, apretándole a ello la falta que él pensaba que
+            <Span>This is <strong>important</strong> and <a href="#">a link {{ title }}</a>.</Span> quiso aguardar más tiempo a poner en efeto su pensamiento, apretándole a ello la falta que él pensaba que
             hacía en el mundo su tardanza, según eran los agravios que pensaba
             deshacer, tuertos que enderezar, sinrazones que emendar y abusos que
             mejorar y deudas que satisfacer. Y así, sin dar parte a persona alguna
@@ -303,6 +304,16 @@ defineOptions({
 });
 const { download } = usePDF();
 const title = ref('Amir');
+const sizePage = ref('A4');
+const pageNames = [
+  "A4",
+  "Letter",
+  "Legal",
+  "Tabloid",
+  "Carta",
+  "Oficio"
+];
+
 const styles = StyleSheet.create({
   body: {
     paddingTop: '35px',

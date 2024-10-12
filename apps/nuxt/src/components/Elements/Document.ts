@@ -7,7 +7,7 @@ export const Document = defineComponent({
     name: "Document",
     setup(_props) {
       const width = "795px";
-      const height = "1065px";
+      const height = "1056px";
       const id = useId();
       const slots = useSlots();
       const context: ComponentInternalInstance = getCurrentInstance();

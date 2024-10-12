@@ -45,6 +45,9 @@ export const Page = defineComponent({
               backgroundColor: "white",
               height: "1065px",
               ...props.style,
+              fontSize: "17.5px",
+              fontFamily: 'Calibri, Arial, sans-serif',
+              lineHeight: 1.15
             },
           },
           slots.default?.()

@@ -13,13 +13,13 @@ export const PDF = defineComponent({
       const width = "795px";
       const height = "1065px";
       const sizes = {
-        A4: { width: "795px", height: "1065px" }, // '1123px' },
-        Letter: { width: "816px", height: "1044px" },
-        Legal: { width: "816px", height: "1344px" },
-        Tabloid: { width: "1056px", height: "1632px" },
-        Carta: { width: "826px", height: "1056px" },
-        Oficio: { width: "826px", height: "1276px" },
-      };
+        A4: { width: "793px", height: "1121px" }, // ajuste de tamaño A4
+        Letter: { width: "816px", height: "1056px" }, // tamaño Carta o Letter
+        Legal: { width: "816px", height: "1344px" }, // tamaño Legal
+        Tabloid: { width: "1408px", height: "2240px" }, // Tabloid más grande
+        Carta: { width: "816px", height: "1056px" }, // Carta (equivalente a Letter)
+        Oficio: { width: "816px", height: "1248px" }, // Oficio
+    };
       return () =>
         h(
           "div",
@@ -30,8 +30,8 @@ export const PDF = defineComponent({
               margin: "0 auto",
               width: "100%",
               height: "100%",
-              maxWidth: width,
-              maxHeight: height,
+              maxWidth: sizes[props.size].width,
+              maxHeight: sizes[props.size].height,
               boxSizing: "border-box",
               overflow: "hidden",
               transform: "scale(1)",
