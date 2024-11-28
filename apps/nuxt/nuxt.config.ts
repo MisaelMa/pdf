@@ -7,6 +7,8 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 import nodeResolve from "@rollup/plugin-node-resolve";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { replaceCodePlugin } from "vite-plugin-replace";
+import { resolve} from 'path'
+
 
 export default defineNuxtConfig({
  devtools: { enabled: true },
@@ -15,10 +17,8 @@ export default defineNuxtConfig({
  experimental: {
    externalVue: true,
  },
-
- alias: {
- /*   "@pdf.js/vue": "../../node_modules/@pdf.js/vue/src",
-   "@pdf.js/vue/*": "../../node_modules/@pdf.js/vue/src/*", */
+ alias: { 
+  '@pdf.js/vue': resolve('node_modules', '@pdf.js/vue/src') 
  },
 
  vite: {

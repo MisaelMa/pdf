@@ -1,3 +1,5 @@
+import { defineComponent, h, useSlots, useId } from "vue";
+
 export const Span = defineComponent({
   setup() {
     const slots = useSlots();
@@ -6,3 +8,6 @@ export const Span = defineComponent({
     return () => h("span", {id, "data-name": "span", style:{ lineHeight: .4 } }, slots.default?.());
   },
 }); // h("div", { "data-name": "SPAN" });
+
+
+

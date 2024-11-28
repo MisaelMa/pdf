@@ -45,14 +45,8 @@
     "tsdx": "^0.14.1"
   },
   "dependencies": {
-    "@vue/runtime-core": "^3.3.4",
-    "vue": "^3.3.4",
-    "@react-pdf/font": "^2.5.1",
-    "@react-pdf/layout": "^3.12.1",
-    "@react-pdf/pdfkit": "^3.1.10",
-    "@react-pdf/primitives": "^3.1.1",
-    "@react-pdf/render": "^3.4.4",
-    "@react-pdf/types": "^2.5.0",
+    "@vue/runtime-core": "^3.5.13",
+    "vue": "^3.5.13",
     "events": "^3.3.0",
     "object-assign": "^4.1.1",
     "prop-types": "^15.6.2",

@@ -1,16 +1,8 @@
-import { useEventBus } from "@/hook/useEventBus";
-import type { Slots } from "vue";
+import { useEventBus } from "../hook/useEventBus";
+import { computed, defineComponent, getCurrentInstance, h, toRefs, useId, useSlots, VNode, watch, type Slots } from "vue";
 import { splitTextWithoutSpans } from "./helper";
+import { fetch_node } from "../utils";
 
-
-const TextP = defineComponent({
-  name: "TextP",
-  setup(props) {
-    const id = useId();
-    const slots = useSlots();
-    return () => h("p", { id, "data-name": "text-p" }, slots.default?.());
-  },
-});
 
 export const Text = defineComponent({
   name: "Text",
@@ -22,14 +14,17 @@ export const Text = defineComponent({
     },
   },
   setup(props) {
-    const { emit } = useEventBus("trigger");
-    
-    const idc = useId();
+    const { emit } = useEventBus('trigger');
+    const style = toRefs(props.style);
+    const id = useId();
     const slots = useSlots();
+
+    
+
     const instance = getCurrentInstance();
     const memorizedSlot = computed(() => {
       const slots_c = fetch_node(instance?.slots as Slots);
-      const list_text = slots_c
+     /*  const list_text = slots_c
         .map((pageSlot: VNode) => {
           if (typeof pageSlot.children === "object") {
             const slot = pageSlot.children.default();
@@ -52,14 +47,11 @@ export const Text = defineComponent({
     console.log("slots_c", slots_c);
     console.log("list_text", list_text);
     console.log("splitTextWithoutSpans", splitTextWithoutSpans(list_text, 795));
-
+ */
       return slots_c;
     });
-    const childs = [];
-    watch(
-      () => memorizedSlot.value,
-      (newValue) => {
-        console.log("slots", memorizedSlot.value);
+    watch(() => memorizedSlot.value, (newValue) => {
+        //console.log("slots", memorizedSlot.value);
         const paragraph = instance?.vnode.el;
 
         /*  console.log(
@@ -71,18 +63,14 @@ export const Text = defineComponent({
       { deep: true, immediate: true, flush: "post" }
     );
 
-    return () => {
-      return h(
-        "div",
-        { id: idc, "data-name": "text-container" },
-        h(
-          TextP,
-          {
-            ...props
-          },
-          () => memorizedSlot.value
-        )
-      );
-    };
+    return () => h("p", { 
+      id, 
+      "data-name": "text-p",
+      style: {
+        margin: "0px",
+        ...props.style,
+      }
+
+     }, slots.default?.());
   },
 });

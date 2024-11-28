@@ -1,3 +1,4 @@
+import { defineComponent, h } from "vue";
 
 export  function getServerSideProps(src: string): any {
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
