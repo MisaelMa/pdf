@@ -20,6 +20,8 @@ const nextConfig = {
   experimental: {
     externalDir: true,
     appDir: true,
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+
     // outputFileTracingRoot: path.join(__dirname, '../..'),
   },
   eslint: {

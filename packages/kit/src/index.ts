@@ -1,0 +1,7 @@
+export { PDF }  from './core/Pdf'
+export { Document } from './core/Document'
+export { Line } from './core/Line'
+export { Page } from './core/Page'
+export { Text } from './core/Text'
+export { Style } from './core/Style'
+export { colorToRGB } from './utils'

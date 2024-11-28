@@ -1,15 +1,11 @@
 <template>
-  <Document>
-    <Page
-      :style="styles.body"
-      bookmark="Harry Pottessr and the Philosopher's Stone"
-    >
-      <Text :bookmark="{ title: 'Cshapter 1: The Boy Who Lived', fit: true }">
-        amir marin jajajawwsss
-
+  <Document ref="doc">
+    <Page :style="styles.body" bookmark="Harry Pottessr and the Philosopher's Stone">
+      <Text :style="styles.header" fixed="true">
+        {{ title }}sssssssssssssssss
       </Text>
       <Text :style="styles.header" fixed="true">
-        ~ Created with react-pdf ~ dalia
+        ~ Created with react-pdf ~
       </Text>
       <Text :style="styles.title">Don Quijote de la Mancha</Text>
       <Text :style="styles.author">Miguel de Cervantes</Text>
@@ -166,20 +162,29 @@
         estrella que, no a los portales, sino a los alcázares de su redención le
         encaminaba. Diose priesa a caminar, y llegó a ella a tiempo que
         anochecía
+        ssssssss
       </Text>
     </Page>
   </Document>
 </template>
 
 <script setup lang="ts">
-import { Document, Page, Image, Text, StyleSheet } from "./tags";
+import { Page, Document, Image } from "./Elements";
+import {   StyleSheet } from "./tags";
+import { Text } from "../components/Elements";
 import Subtitle from "./Subtitle.vue";
-import {onMounted,watchEffect} from 'vue'
-onMounted(()=>{
+import { onMounted, watchEffect } from 'vue'
+const props = defineProps<{
+  title: string;
+}>();
+onMounted(() => {
   console.log("render pdwssf");
 })
-watchEffect(()=>{
-    console.log(" lalalwatchEffect pdf");
+watchEffect(() => {
+  console.log(" lalalwatchEffect pdf");
+  nextTick(() => {
+    console.log("nextTick pdf");
+  })
 })
 const styles = StyleSheet.create({
   body: {
@@ -199,7 +204,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     margin: 12,
-    color:'red'
+    color: 'red'
   },
   text: {
     margin: 12,
@@ -227,5 +232,3 @@ const styles = StyleSheet.create({
   },
 });
 </script>
-
-

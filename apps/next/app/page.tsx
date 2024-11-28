@@ -1,23 +1,25 @@
-import PDFViewer from "./components/DocuPDF";
-import Quixote from "./components/PDFSSR";
-import dynamic from "next/dynamic";
 
+import Pdf from "./components/Pdf";
+/* const PDFViewer = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>,
+  }
+);
+ */
 //import PDFViewerWithNoSSR from "./components/DocuPDF";
-const PDFViewerWithNoSSR = dynamic(() => import("./components/DocuPDF"), {
+/* const PDFViewerWithNoSSR = dynamic(() => import("./components/DocuPDF"), {
   ssr: false,
-});
+}); */
 
 export default async function page() {
-  const staticData = await fetch(
-    `https://api.telweb.app/sat/facturas/pdf?uuid=BFD7FF2B-0491-4768-B7E9-C8516B1BD477`,
-    { cache: "force-cache" }
-  ).then((response) => response.json());
-
+ 
   return (
     <div>
-      {/*   <Quixote /> */}
+     <Pdf></Pdf>
 
-      <PDFViewerWithNoSSR value={<Quixote />} />
+   {/*  <PDFViewerWithNoSSR value={<Quixote />} />   */}
     </div>
   );
 }

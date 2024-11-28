@@ -9,49 +9,54 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import { replaceCodePlugin } from "vite-plugin-replace";
 
 export default defineNuxtConfig({
-  devtools: { enabled: true },
-  srcDir: "src",
-  experimental: {
-    externalVue: true,
-  },
-  alias: {
-    "@pdf.js/vue": "../../node_modules/@pdf.js/vue/src",
-    "@pdf.js/vue/*": "../../node_modules/@pdf.js/vue/src/*",
-  },
-  vite: {
-    plugins: [
-      inject({
-        include: "./src/**/*.vue", // Restringe el complemento a archivos con extensión .vue
-        // Otras opciones del complemento aquí...
-      }),
-      alias({
-        entries: [
-          { find: "stream", replacement: "vite-compatible-readable-stream" },
-          { find: "zlib", replacement: "browserify-zlib" },
-        ],
-      }),
-      /*    commonjs(),
-      nodeResolve({ browser: true, preferBuiltins: false }), */
-      nodePolyfills({
-        // To exclude specific polyfills, add them to this list.
-        exclude: [
-          "fs", // Excludes the polyfill for `fs` and `node:fs`.
-        ],
-        // Whether to polyfill specific globals.
-        globals: {
-          Buffer: true, // can also be 'build', 'dev', or false
-          global: true,
-          process: true,
-        },
-        // Whether to polyfill `node:` protocol imports.
-        protocolImports: true,
-      }),
+ devtools: { enabled: true },
+ srcDir: "src",
 
-      /* nodePolyfills({
-        include: [/node_modules\/.+\.js/, /pdfkit\/src\/.*\.js/],
-      }), */
-    ],
-  },
+ experimental: {
+   externalVue: true,
+ },
+
+ alias: {
+ /*   "@pdf.js/vue": "../../node_modules/@pdf.js/vue/src",
+   "@pdf.js/vue/*": "../../node_modules/@pdf.js/vue/src/*", */
+ },
+
+ vite: {
+   plugins: [
+     inject({
+       include: "./src/**/*.vue", // Restringe el complemento a archivos con extensión .vue
+       // Otras opciones del complemento aquí...
+     }),
+     alias({
+       entries: [
+         { find: "stream", replacement: "vite-compatible-readable-stream" },
+         { find: "zlib", replacement: "browserify-zlib" },
+       ],
+     }),
+     /*    commonjs(),
+     nodeResolve({ browser: true, preferBuiltins: false }), */
+    /*  nodePolyfills({
+       // To exclude specific polyfills, add them to this list.
+       exclude: [
+         "fs", // Excludes the polyfill for `fs` and `node:fs`.
+       ],
+       // Whether to polyfill specific globals.
+       globals: {
+         Buffer: true, // can also be 'build', 'dev', or false
+         global: true,
+         process: true,
+       },
+       // Whether to polyfill `node:` protocol imports.
+       protocolImports: true,
+     }), */
+
+     /* nodePolyfills({
+       include: [/node_modules\/.+\.js/, /pdfkit\/src\/.*\.js/],
+     }), */
+   ],
+ },
+
+ compatibilityDate: "2024-10-10",
 });
 
 /* alias({

@@ -1,20 +1,22 @@
-import FontStore from '@react-pdf/font/src';
-import PDFDocument from '@react-pdf/pdfkit/src';
+// @ts-ignore
+import FontStore from '@react-pdf/font';
+// @ts-ignore
+import PDFDocument from '@react-pdf/pdfkit';
 import { createRenderer } from './renderer';
 // @ts-ignore
-import layoutDocument from '@react-pdf/layout/src';
+import layoutDocument from '@react-pdf/layout';
 // @ts-ignore
-import renderPDF from '@react-pdf/render/src';
+import renderPDF from '@react-pdf/render';
 const version = '3.1.9';
 const fontStore = new FontStore();
 // We must keep a single renderer instance, otherwise React will complain
-let renderer;
+let renderer: any = null;
 
 // The pdf instance acts as an event emitter for DOM usage.
 // We only want to trigger an update when PDF content changes
 const events: any = {};
 
-const pdf = async (initialValue?: any) => {
+const pdf = (initialValue?: any) => {
   const onChange = () => {
     const listeners = events.change?.slice() || [];
     for (let i = 0; i < listeners.length; i += 1) {
@@ -23,20 +25,20 @@ const pdf = async (initialValue?: any) => {
   };
 
   let container: any = { type: 'ROOT', document: null };
+  //renderer = renderer || createRenderer({ onChange });
+  //const mountNode = renderer.createContainer(container);
 
-  const updateContainer = async (doc: any) => {
+  const updateContainer = async (doc: any, callback: any) => {
     //console.log('aqui updateContainer', doc);
-
+    //renderer.updateContainer(doc, mountNode, null, callback);
     container = await createRenderer(doc);
     onChange();
+    return container
     //console.log('aqui container', container);
   };
 
-  if (initialValue) {
-    //console.log('initialValue', initialValue);
-
-    container = await createRenderer(initialValue);
-  }
+  if (initialValue) createRenderer(initialValue);
+  
 
   const render = async (compress = true) => {
     //console.log('container render', container);
@@ -58,6 +60,12 @@ const pdf = async (initialValue?: any) => {
     return { layout, fileStream };
   };
 
+  const callOnRender = (params = {}) => {
+    if (container.document.props.onRender) {
+      container.document.props.onRender(params);
+    }
+  };
+  
   const toBlob = async () => {
     const chunks: any = [];
     //console.log('toBlob', container);
@@ -75,7 +83,7 @@ const pdf = async (initialValue?: any) => {
       instance.on('end', () => {
         try {
           const blob = new Blob(chunks, { type: 'application/pdf' });
-          //callOnRender({ blob, _INTERNAL__LAYOUT__DATA_ });
+          callOnRender({ blob, _INTERNAL__LAYOUT__DATA_ });
           resolve(blob);
         } catch (error) {
           reject(error);
@@ -90,11 +98,7 @@ const pdf = async (initialValue?: any) => {
     return (await render()).fileStream;
   };
 
-  const callOnRender = (params = {}) => {
-    if (container.document.props.onRender) {
-      container.document.props.onRender(params);
-    }
-  };
+ 
   /*
    * TODO: remove this method in next major release. it is buggy
    * see

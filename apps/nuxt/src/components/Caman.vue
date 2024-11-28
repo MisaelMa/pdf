@@ -1,16 +1,17 @@
 <template>
-    <Page>
        <Text>
          hola
-        AQUI
+        AQUI amir
+        <span :style="{color: 'black'}">
+            {{ text }}
+        </span>
        </Text>
-        <Columna/>
-    </Page>
+      
 </template>
 <script setup>
-import Columna from './Subtitle.vue'
-import {defineOptions} from 'vue'
-defineOptions({
-    name:'Caman'
+import { Text } from './Elements'
+
+defineProps({
+    text: String
 })
 </script>
