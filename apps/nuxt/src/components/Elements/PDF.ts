@@ -1,10 +1,9 @@
+export type Size=  "A4" | "Letter" | "Legal" | "Tabloid" | "Carta" | "Oficio"
 export const PDF = defineComponent({
     name: "PDF",
     props: {
       size: {
-        type: String as PropType<
-          "A4" | "Letter" | "Legal" | "Tabloid" | "Carta" | "Oficio"
-        >,
+        type: String as PropType<Size>,
         default: "A4",
       },
     },
