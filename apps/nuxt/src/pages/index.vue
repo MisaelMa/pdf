@@ -17,7 +17,7 @@
       <PDF :size="sizePage">
         <Document>
           <Page
-          v-for="i in 3"
+            v-for="i in 3"
             :style="styles.body"
             bookmark="Harry Pottessr and the Philosopher's Stone"
           >
@@ -70,7 +70,7 @@
         vuestra grandeza.
       </Text>
       <Text :style="styles.text">
-        Con estas y semejantes razones perdía el pobre caballero el juicio, y
+        {{ title }} Con estas y semejantes razones perdía el pobre caballero el juicio, y
         desvelábase por entenderlas, y desentrañarles el sentido, que no se lo
         sacara, ni las entendiera el mismo Aristóteles, si resucitara para sólo
         ello. No estaba muy bien con las heridas que don Belianis daba y

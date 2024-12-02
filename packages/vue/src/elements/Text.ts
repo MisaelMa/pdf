@@ -1,11 +1,25 @@
-import { useEventBus } from "../hook/useEventBus";
-import { computed, defineComponent, getCurrentInstance, h, toRefs, useId, useSlots, VNode, watch, type Slots } from "vue";
-import { splitTextWithoutSpans } from "./helper";
-import { fetch_node } from "../utils";
-
+import { useEventBus } from '../hook/useEventBus';
+import {
+  computed,
+  defineComponent,
+  getCurrentInstance,
+  h,
+  ref,
+  toRefs,
+  useId,
+  useSlots,
+  watch,
+  Teleport,
+  onMounted,
+  nextTick,
+  inject,
+  useTemplateRef,
+  defineExpose,
+} from 'vue';
+import { fetch_node } from '../utils';
 
 export const Text = defineComponent({
-  name: "Text",
+  name: 'Text',
   inheritAttrs: false,
   props: {
     style: {
@@ -14,63 +28,87 @@ export const Text = defineComponent({
     },
   },
   setup(props) {
-    const { emit } = useEventBus('trigger');
+    const { on } = useEventBus('text-overflow');
+    const { emit } = useEventBus('page-overflow');
+    const { on: onTeleport } = useEventBus('text-teleport');
+    const pageContentId = inject('pageContentId');
     const style = toRefs(props.style);
     const id = useId();
+    const textRef = useTemplateRef(`text-${id}`)
     const slots = useSlots();
 
-    
-
     const instance = getCurrentInstance();
-    const memorizedSlot = computed(() => {
-      const slots_c = fetch_node(instance?.slots as Slots);
-     /*  const list_text = slots_c
-        .map((pageSlot: VNode) => {
-          if (typeof pageSlot.children === "object") {
-            const slot = pageSlot.children.default();
-            slot[0].props = pageSlot.props || props
-            delete slot[0].vNode
-            return slot;
-          }
-          const s =  pageSlot;
-          delete s.vNode;
-            s.props = { ...pageSlot.props, ...props };
-            return s;
-        })
-        .flat()
-        .map((v: any) => {
-          return {
-            children: v.children,
-            props: v.props,
-          }
-        });
-    console.log("slots_c", slots_c);
-    console.log("list_text", list_text);
-    console.log("splitTextWithoutSpans", splitTextWithoutSpans(list_text, 795));
- */
-      return slots_c;
+    const teleport = ref({
+      to: null,
     });
-    watch(() => memorizedSlot.value, (newValue) => {
-        //console.log("slots", memorizedSlot.value);
-        const paragraph = instance?.vnode.el;
 
-        /*  console.log(
-          "UPDATE Text: Reactivity detected in slot content",
-          getLinesFromP(paragraph, 100)
-        ); */
-        emit("trigger");
-      },
-      { deep: true, immediate: true, flush: "post" }
+    const isOverflowing = ref(false);
+
+    const checkOverflow = () => {
+      const element = instance?.vnode.el; // Nodo actual del componente
+      if (element) {
+        // Verificar si el contenido desborda
+        isOverflowing.value =
+          element.scrollHeight > element.clientHeight ||
+          element.scrollWidth > element.clientWidth;
+
+       
+      }
+    };
+    on((eventName, payload) => {
+      if (payload.textId === id) {
+        //teleport.value.to = payload.to;
+        emit('page-overflow', { textId: id, emitPageId: pageContentId.id });
+      }
+    });
+   
+    onTeleport((eventName, payload) => {
+      if (payload.textId === id) {
+        teleport.value.to = payload.to;
+      }
+    });
+    // Verificar el desbordamiento después del montaje y en actualizaciones
+    onMounted(() => {
+      nextTick(checkOverflow);
+      pageContentId.content.push({ id, textRef });
+    });
+
+    watch(
+      () => slots.default?.(),
+      () => nextTick(checkOverflow),
+      { deep: true }
     );
+    const runTeleport = () => {
+      console.log('runTeleport');
+    };
 
-    return () => h("p", { 
-      id, 
-      "data-name": "text-p",
-      style: {
-        margin: "0px",
-        ...props.style,
+    defineExpose({
+      runTeleport,
+    });
+    return () => {
+      const content = h(
+        'p',
+        {
+          id,
+          ref: `text-${id}`,
+          'data-name': 'text-p',
+          style: {
+            margin: '0px',
+            ...props.style,
+          },
+        },
+        slots.default?.()
+      );
+
+      if (isOverflowing.value) {
+        console.log('Text is overflowing');
       }
 
-     }, slots.default?.());
+       if (teleport.value.to) {
+        return h(Teleport, { to: `#${teleport.value.to}` }, content);
+      } 
+
+      return content;
+    };
   },
 });
