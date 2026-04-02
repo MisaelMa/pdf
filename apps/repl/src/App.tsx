@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect, type CSSProperties } from 'react'
 import Editor from '@monaco-editor/react'
 import { renderToBlob, buildPDFTree } from '@pdfcraft/react'
-import React from 'react'
 import { DEFAULT_CODE } from './default-code'
 import { compileCode } from './compile'
 
@@ -27,8 +26,8 @@ export default function App() {
         return
       }
 
-      const element = React.createElement(Component)
-      const tree = buildPDFTree(element)
+      const rendered = Component({})
+      const tree = buildPDFTree(rendered)
       if (!tree) {
         setError('Could not build PDF tree. Make sure your component returns <Document>.')
         setLoading(false)
