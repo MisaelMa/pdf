@@ -5,6 +5,7 @@ import {
   Page,
   View,
   Text,
+  Link,
   StyleSheet,
 } from '@pdfcraft/react'
 
@@ -15,30 +16,65 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1a1a2e',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontStyle: 'italic',
     color: '#888',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
   },
+  row: {
+    flexDirection: 'row' as const,
+    gap: 10,
+    marginBottom: 12,
+  },
+  card: {
+    flex: 1,
+    padding: 14,
+    backgroundColor: '#f0f4f8',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    marginBottom: 6,
+  },
+  cardText: { fontSize: 10, color: '#4a5568', lineHeight: 1.5 },
   section: {
-    marginBottom: 15,
-    padding: 15,
+    marginBottom: 12,
+    padding: 14,
     backgroundColor: '#f0f4f8',
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#d1d5db',
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#2d3748',
     marginBottom: 6,
   },
-  text: { fontSize: 11, color: '#4a5568', lineHeight: 1.6 },
+  text: { fontSize: 10, color: '#4a5568', lineHeight: 1.5 },
+  badge: {
+    backgroundColor: '#818cf8',
+    color: '#ffffff',
+    fontSize: 9,
+    padding: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  link: { fontSize: 10, color: '#2563eb' },
+  footer: {
+    fontSize: 8,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 16,
+  },
 })
 
 export default function App() {
@@ -79,22 +115,64 @@ export default function App() {
           <Page size="A4" style={styles.page}>
             <Text style={styles.header}>{title}</Text>
             <Text style={styles.subtitle}>
-              Generated with declarative React components
+              Generated with declarative React components + Yoga flexbox layout
             </Text>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>JSX Components</Text>
-              <Text style={styles.text}>
-                Just like react-pdf — nest Document, Page, View, Text inside a
-                PDFViewer. Change the title above and watch it re-render.
-              </Text>
+
+            <View style={styles.row}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Reactive</Text>
+                <Text style={styles.cardText}>
+                  Change the title above and the PDF updates via React state.
+                </Text>
+              </View>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Flexbox</Text>
+                <Text style={styles.cardText}>
+                  Full flexbox layout with Yoga — row, column, gap, flex-grow.
+                </Text>
+              </View>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>PDFKit</Text>
+                <Text style={styles.cardText}>
+                  High-quality PDF output with fonts, images, and links.
+                </Text>
+              </View>
             </View>
+
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+              <Text style={styles.badge}>Vue</Text>
+              <Text style={styles.badge}>React</Text>
+              <Text style={styles.badge}>Svelte</Text>
+              <Text style={styles.badge}>Nuxt SSR</Text>
+              <Text style={styles.badge}>Next SSR</Text>
+            </View>
+
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Styled components</Text>
               <Text style={styles.text}>
-                Views with backgrounds, borders and border-radius. Text with
-                font sizes, weights, colors, and line heights.
+                Views with backgrounds, borders, border-radius. Text with font sizes,
+                weights, colors, line heights, and decorations.
               </Text>
             </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Links</Text>
+              <View style={{ flexDirection: 'row', gap: 16 }}>
+                <Link src="https://github.com" style={styles.link}>
+                  <Text style={styles.link}>GitHub</Text>
+                </Link>
+                <Link src="https://react.dev" style={styles.link}>
+                  <Text style={styles.link}>React</Text>
+                </Link>
+                <Link src="https://react-pdf.org" style={styles.link}>
+                  <Text style={styles.link}>react-pdf</Text>
+                </Link>
+              </View>
+            </View>
+
+            <Text style={styles.footer}>
+              Built with @pdfcraft/react — pdfkit + yoga layout engine
+            </Text>
           </Page>
         </Document>
       </PDFViewer>

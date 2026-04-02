@@ -27,7 +27,8 @@
     "lint": "echo 'no linter configured'"
   },
   "dependencies": {
-    "pdfkit": "^0.16.0"
+    "pdfkit": "^0.16.0",
+    "yoga-layout": "^3.2.1"
   },
   "devDependencies": {
     "@types/pdfkit": "^0.13.9",

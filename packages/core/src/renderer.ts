@@ -4,6 +4,7 @@ import { resolvePageSize } from './page-sizes'
 import { resolveStyle } from './stylesheet'
 import { resolveFontName, registerFontsOnDocument } from './font'
 import { fetchImage } from './image-loader'
+import { initYoga, buildYogaTree } from './yoga-layout'
 
 export async function renderToBuffer(documentNode: PDFNode): Promise<Uint8Array> {
   return new Promise(async (resolve, reject) => {
@@ -68,49 +69,18 @@ function createPDFDocument(documentNode: PDFNode): PDFKit.PDFDocument {
   if (props.language) options.lang = props.language
 
   const doc = new PDFDocument(options)
-
   registerFontsOnDocument(doc)
   return doc
 }
 
 async function renderDocument(doc: PDFKit.PDFDocument, documentNode: PDFNode): Promise<void> {
+  const yg = await initYoga()
+
   for (const child of documentNode.children) {
     if (typeof child === 'string') continue
     if (child.type === 'PAGE') {
-      await renderPage(doc, child)
+      await renderPage(doc, child, yg)
     }
-  }
-}
-
-async function renderPage(doc: PDFKit.PDFDocument, pageNode: PDFNode): Promise<void> {
-  const size = resolvePageSize(pageNode.props.size, pageNode.props.orientation)
-  doc.addPage({ size: [size.width, size.height], margin: 0 })
-
-  const style = resolveStyle(pageNode.props.style)
-
-  if (style.backgroundColor) {
-    doc.save()
-    doc.rect(0, 0, size.width, size.height).fill(style.backgroundColor)
-    doc.restore()
-  }
-
-  const contentX = style.paddingLeft
-  const contentY = style.paddingTop
-  const contentWidth = size.width - style.paddingLeft - style.paddingRight
-
-  await preloadImages(pageNode)
-
-  const layouts = layoutChildren(
-    doc,
-    pageNode.children,
-    contentX,
-    contentY,
-    contentWidth,
-    style,
-  )
-
-  for (const layout of layouts) {
-    renderLayoutNode(doc, layout)
   }
 }
 
@@ -128,174 +98,128 @@ async function preloadImages(node: PDFNode): Promise<void> {
       if (typeof src === 'string' && !loadedImages.has(src)) {
         promises.push(
           fetchImage(src)
-            .then((buf) => {
-              loadedImages.set(src, Buffer.from(buf))
-            })
-            .catch(() => {
-              // silently skip images that can't be loaded
-            }),
+            .then((buf) => { loadedImages.set(src, Buffer.from(buf)) })
+            .catch(() => {}),
         )
       }
     }
-    for (const child of n.children) {
-      walk(child)
-    }
+    for (const child of n.children) walk(child)
   }
 
   walk(node)
   await Promise.all(promises)
 }
 
-// ── Layout pass ──────────────────────────────────────────────────────
+// ── Page rendering with Yoga layout + wrap ─────────────────────────
 
-function layoutChildren(
+async function renderPage(
   doc: PDFKit.PDFDocument,
-  children: PDFChild[],
-  x: number,
-  startY: number,
-  availableWidth: number,
-  parentStyle: ResolvedStyle,
-): LayoutNode[] {
-  const layouts: LayoutNode[] = []
-  let cursorY = startY
+  pageNode: PDFNode,
+  yg: any,
+): Promise<void> {
+  const size = resolvePageSize(pageNode.props.size, pageNode.props.orientation)
+  const pageStyle = resolveStyle(pageNode.props.style)
+  const wrapEnabled = pageNode.props.wrap !== false
 
-  const nodes = children.filter((c): c is PDFNode => typeof c !== 'string')
+  await preloadImages(pageNode)
 
-  for (let i = 0; i < nodes.length; i++) {
-    if (i > 0 && parentStyle.gap > 0) {
-      cursorY += parentStyle.gap
-    }
+  const layouts = buildYogaTree(yg, doc, pageNode, size.width, size.height)
 
-    const layout = layoutNode(doc, nodes[i], x, cursorY, availableWidth)
-    layouts.push(layout)
-    cursorY = layout.y + layout.height + layout.style.marginBottom
+  if (!wrapEnabled) {
+    addNewPage(doc, size, pageStyle)
+    for (const layout of layouts) renderLayoutNode(doc, layout)
+    return
   }
 
-  return layouts
+  const pageContentHeight = size.height
+  const flatNodes = flattenForWrapping(layouts)
+
+  if (flatNodes.length === 0) {
+    addNewPage(doc, size, pageStyle)
+    return
+  }
+
+  const totalContentHeight = flatNodes.reduce(
+    (max, n) => Math.max(max, n.y + n.height),
+    0,
+  )
+
+  if (totalContentHeight <= pageContentHeight) {
+    addNewPage(doc, size, pageStyle)
+    for (const layout of layouts) renderLayoutNode(doc, layout)
+    return
+  }
+
+  let pageStartY = 0
+  let pageIndex = 0
+
+  while (pageStartY < totalContentHeight) {
+    const pageEndY = pageStartY + pageContentHeight
+    addNewPage(doc, size, pageStyle)
+
+    for (const node of flatNodes) {
+      if (node.node.type === 'PAGE') continue
+      const nodeBottom = node.y + node.height
+      const nodeTop = node.y
+
+      if (nodeBottom <= pageStartY || nodeTop >= pageEndY) continue
+
+      const offsetNode = {
+        ...node,
+        y: node.y - pageStartY,
+        children: [],
+      }
+      renderLayoutNode(doc, offsetNode)
+    }
+
+    pageStartY = pageEndY
+    pageIndex++
+    if (pageIndex > 100) break
+  }
 }
 
-function layoutNode(
+function addNewPage(
   doc: PDFKit.PDFDocument,
-  node: PDFNode,
-  x: number,
-  y: number,
-  availableWidth: number,
-): LayoutNode {
-  const style = resolveStyle(node.props.style)
+  size: { width: number; height: number },
+  pageStyle: ResolvedStyle,
+): void {
+  doc.addPage({ size: [size.width, size.height], margin: 0 })
 
-  const boxX = x + style.marginLeft
-  const boxY = y + style.marginTop
-  const boxWidth =
-    style.width ?? availableWidth - style.marginLeft - style.marginRight
-  const contentWidth = boxWidth - style.paddingLeft - style.paddingRight
+  if (pageStyle.backgroundColor) {
+    doc.save()
+    doc.rect(0, 0, size.width, size.height).fill(pageStyle.backgroundColor)
+    doc.restore()
+  }
+}
 
-  let contentHeight = 0
-  let childLayouts: LayoutNode[] = []
-  let textContent: string | undefined
+/**
+ * Flatten the layout tree into leaf/renderable nodes for page splitting.
+ * We keep nodes that have visual output (text, image, background, border)
+ * and skip pure container nodes whose children handle rendering.
+ */
+function flattenForWrapping(layouts: LayoutNode[]): LayoutNode[] {
+  const result: LayoutNode[] = []
 
-  switch (node.type) {
-    case 'TEXT': {
-      textContent = extractText(node.children)
-      textContent = applyTextTransform(textContent, style.textTransform)
+  function walk(layout: LayoutNode) {
+    const hasVisual =
+      layout.textContent ||
+      layout.node.type === 'IMAGE' ||
+      layout.style.backgroundColor ||
+      layout.style.borderWidth > 0
 
-      doc.save()
-      doc.fontSize(style.fontSize)
-      doc.font(resolveFontName(style))
-
-      const textOpts: any = {
-        width: Math.max(contentWidth, 0),
-        align: style.textAlign,
-      }
-      if (style.lineHeight) {
-        textOpts.lineGap = (style.lineHeight - 1) * style.fontSize
-      }
-
-      contentHeight = doc.heightOfString(textContent || ' ', textOpts)
-      doc.restore()
-      break
+    if (hasVisual) {
+      result.push(layout)
     }
 
-    case 'IMAGE': {
-      const imgW =
-        style.width != null
-          ? style.width - style.paddingLeft - style.paddingRight
-          : contentWidth
-      const imgH =
-        style.height != null
-          ? style.height - style.paddingTop - style.paddingBottom
-          : imgW * 0.75
-      contentHeight = imgH
-      break
+    if (layout.node.type === 'LINK' && layout.node.props.src) {
+      if (!hasVisual) result.push(layout)
     }
 
-    case 'LINK': {
-      const hasTextChildren = node.children.some(
-        (c) => typeof c === 'string' || (typeof c !== 'string' && c.type === 'TEXT'),
-      )
-
-      if (hasTextChildren) {
-        textContent = extractText(node.children)
-        textContent = applyTextTransform(textContent, style.textTransform)
-
-        doc.save()
-        doc.fontSize(style.fontSize)
-        doc.font(resolveFontName(style))
-
-        const textOpts: any = {
-          width: Math.max(contentWidth, 0),
-          align: style.textAlign,
-        }
-        if (style.lineHeight) {
-          textOpts.lineGap = (style.lineHeight - 1) * style.fontSize
-        }
-        contentHeight = doc.heightOfString(textContent || ' ', textOpts)
-        doc.restore()
-      } else {
-        const contentX = boxX + style.paddingLeft
-        const contentY = boxY + style.paddingTop
-        childLayouts = layoutChildren(doc, node.children, contentX, contentY, contentWidth, style)
-        if (childLayouts.length > 0) {
-          const last = childLayouts[childLayouts.length - 1]
-          contentHeight = last.y + last.height + last.style.marginBottom - contentY
-        }
-      }
-      break
-    }
-
-    case 'VIEW':
-    default: {
-      const contentX = boxX + style.paddingLeft
-      const contentY = boxY + style.paddingTop
-      childLayouts = layoutChildren(
-        doc,
-        node.children,
-        contentX,
-        contentY,
-        contentWidth,
-        style,
-      )
-
-      if (childLayouts.length > 0) {
-        const last = childLayouts[childLayouts.length - 1]
-        contentHeight = last.y + last.height + last.style.marginBottom - contentY
-      }
-      break
-    }
+    for (const child of layout.children) walk(child)
   }
 
-  const boxHeight =
-    style.height ?? style.paddingTop + contentHeight + style.paddingBottom
-
-  return {
-    node,
-    x: boxX,
-    y: boxY,
-    width: boxWidth,
-    height: boxHeight,
-    style,
-    children: childLayouts,
-    textContent,
-  }
+  for (const layout of layouts) walk(layout)
+  return result
 }
 
 // ── Render pass ──────────────────────────────────────────────────────
@@ -305,6 +229,11 @@ function renderLayoutNode(
   layout: LayoutNode,
 ): void {
   const { x, y, width, height, style, node, children, textContent } = layout
+
+  if (node.type === 'PAGE') {
+    for (const child of children) renderLayoutNode(doc, child)
+    return
+  }
 
   if (style.backgroundColor) {
     doc.save()
@@ -336,27 +265,18 @@ function renderLayoutNode(
   }
 
   if (node.type === 'LINK') {
-    if (textContent) {
-      renderText(doc, layout)
-    }
-    if (node.props.src) {
-      doc.link(x, y, width, height, node.props.src)
-    }
+    if (textContent) renderText(doc, layout)
+    if (node.props.src) doc.link(x, y, width, height, node.props.src)
   }
 
   if (node.type === 'IMAGE' && node.props.src) {
     renderImage(doc, layout)
   }
 
-  for (const child of children) {
-    renderLayoutNode(doc, child)
-  }
+  for (const child of children) renderLayoutNode(doc, child)
 }
 
-function renderText(
-  doc: PDFKit.PDFDocument,
-  layout: LayoutNode,
-): void {
+function renderText(doc: PDFKit.PDFDocument, layout: LayoutNode): void {
   const { x, y, width, style, textContent } = layout
   if (!textContent) return
 
@@ -372,31 +292,22 @@ function renderText(
   const cW = width - style.paddingLeft - style.paddingRight
 
   const opts: any = { width: Math.max(cW, 0), align: style.textAlign }
-  if (style.lineHeight) {
-    opts.lineGap = (style.lineHeight - 1) * style.fontSize
-  }
-  if (style.letterSpacing) {
-    opts.characterSpacing = style.letterSpacing
-  }
+  if (style.lineHeight) opts.lineGap = (style.lineHeight - 1) * style.fontSize
+  if (style.letterSpacing) opts.characterSpacing = style.letterSpacing
   if (style.textDecoration === 'underline') opts.underline = true
   if (style.textDecoration === 'line-through') opts.strike = true
 
   if (layout.node.type === 'LINK') {
     opts.link = layout.node.props.src
     opts.underline = opts.underline ?? true
-    if (style.color === '#000000') {
-      doc.fillColor('#0000EE')
-    }
+    if (style.color === '#000000') doc.fillColor('#0000EE')
   }
 
   doc.text(textContent, cX, cY, opts)
   doc.restore()
 }
 
-function renderImage(
-  doc: PDFKit.PDFDocument,
-  layout: LayoutNode,
-): void {
+function renderImage(doc: PDFKit.PDFDocument, layout: LayoutNode): void {
   const { x, y, width, height, style, node } = layout
   const cX = x + style.paddingLeft
   const cY = y + style.paddingTop
@@ -425,37 +336,7 @@ function renderImage(
 
     doc.image(imgSrc, cX, cY, imgOpts)
   } catch {
-    // skip images that can't be rendered
+    // skip unrenderable images
   }
   doc.restore()
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-function extractText(children: PDFChild[]): string {
-  return children
-    .map((child) => {
-      if (typeof child === 'string') return child
-      if (child.type === 'TEXT' || child.type === 'LINK') {
-        return extractText(child.children)
-      }
-      return ''
-    })
-    .join('')
-}
-
-function applyTextTransform(
-  text: string,
-  transform?: string,
-): string {
-  switch (transform) {
-    case 'uppercase':
-      return text.toUpperCase()
-    case 'lowercase':
-      return text.toLowerCase()
-    case 'capitalize':
-      return text.replace(/\b\w/g, (c) => c.toUpperCase())
-    default:
-      return text
-  }
 }

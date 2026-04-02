@@ -371,6 +371,135 @@ describe('renderToBuffer', () => {
     expect(buffer.length).toBeGreaterThan(50)
   })
 
+  it('renders flexbox row layout', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { flexDirection: 'row', gap: 10 } }, [
+          View({ style: { flex: 1, backgroundColor: '#e0e7ff', padding: 10 } }, [
+            Text({}, 'Column 1'),
+          ]),
+          View({ style: { flex: 1, backgroundColor: '#dbeafe', padding: 10 } }, [
+            Text({}, 'Column 2'),
+          ]),
+          View({ style: { flex: 1, backgroundColor: '#e0f2fe', padding: 10 } }, [
+            Text({}, 'Column 3'),
+          ]),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders flexbox with justifyContent center', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { flexDirection: 'row', justifyContent: 'center', height: 100 } }, [
+          View({ style: { width: 50, height: 50, backgroundColor: '#f87171' } }, []),
+          View({ style: { width: 50, height: 50, backgroundColor: '#60a5fa' } }, []),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders flexbox with alignItems center', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { flexDirection: 'row', alignItems: 'center', height: 100, backgroundColor: '#f5f5f5' } }, [
+          Text({ style: { fontSize: 20 } }, 'Big'),
+          Text({ style: { fontSize: 10 } }, 'Small'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders flexGrow distribution', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { flexDirection: 'row' } }, [
+          View({ style: { flexGrow: 1, backgroundColor: '#a5b4fc', padding: 10 } }, [
+            Text({}, 'Grow 1'),
+          ]),
+          View({ style: { flexGrow: 2, backgroundColor: '#818cf8', padding: 10 } }, [
+            Text({}, 'Grow 2'),
+          ]),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders absolute positioning', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { height: 200 } }, [
+          View({
+            style: {
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              width: 80,
+              height: 80,
+              backgroundColor: '#fbbf24',
+            },
+          }, [
+            Text({}, 'Abs'),
+          ]),
+          Text({}, 'Normal flow'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders space-between layout', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({
+          style: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            padding: 10,
+            backgroundColor: '#f1f5f9',
+          },
+        }, [
+          Text({}, 'Left'),
+          Text({}, 'Right'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders page wrapping with overflowing content', async () => {
+    const items = Array.from({ length: 50 }, (_, i) =>
+      Text({ style: { fontSize: 12, marginBottom: 5 } }, `Item ${i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit.`),
+    )
+    const doc = Document({}, [
+      Page({ size: 'A4', style: { padding: 40 } }, items),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(500)
+  })
+
+  it('respects wrap=false on page', async () => {
+    const items = Array.from({ length: 30 }, (_, i) =>
+      Text({}, `Line ${i + 1}`),
+    )
+    const doc = Document({}, [
+      Page({ size: 'A4', wrap: false, style: { padding: 20 } }, items),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
   it('renders complex multi-section document', async () => {
     const styles = StyleSheet.create({
       page: { padding: 40, backgroundColor: '#ffffff' },

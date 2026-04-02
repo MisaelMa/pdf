@@ -3,6 +3,7 @@ export { StyleSheet, resolveStyle } from './stylesheet'
 export { Font } from './font'
 export { resolvePageSize } from './page-sizes'
 export { fetchImage, clearImageCache } from './image-loader'
+export { initYoga } from './yoga-layout'
 export {
   renderToBuffer,
   renderToStream,

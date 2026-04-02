@@ -19,36 +19,64 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1a1a2e',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontStyle: 'italic',
     color: '#888',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
   },
+  row: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  card: {
+    flex: 1,
+    padding: 14,
+    backgroundColor: '#f0f4f8',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    marginBottom: 6,
+  },
+  cardText: { fontSize: 10, color: '#4a5568', lineHeight: 1.5 },
   section: {
-    marginBottom: 15,
-    padding: 15,
+    marginBottom: 12,
+    padding: 14,
     backgroundColor: '#f0f4f8',
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#d1d5db',
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#2d3748',
     marginBottom: 6,
   },
-  text: { fontSize: 11, color: '#4a5568', lineHeight: 1.6 },
-  link: { fontSize: 11, color: '#2563eb', textDecoration: 'underline' },
-  footer: {
+  text: { fontSize: 10, color: '#4a5568', lineHeight: 1.5 },
+  badge: {
+    backgroundColor: '#818cf8',
+    color: '#ffffff',
     fontSize: 9,
+    padding: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  link: { fontSize: 10, color: '#2563eb' },
+  footer: {
+    fontSize: 8,
     color: '#9ca3af',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 16,
   },
 })
 </script>
@@ -69,37 +97,67 @@ const styles = StyleSheet.create({
         <PDFPage size="A4" :style="styles.page">
           <PDFText :style="styles.header">{{ title }}</PDFText>
           <PDFText :style="styles.subtitle">
-            Generated with declarative Vue components
+            Generated with declarative Vue components + Yoga flexbox layout
           </PDFText>
 
-          <PDFView :style="styles.section">
-            <PDFText :style="styles.sectionTitle">Reactive binding</PDFText>
-            <PDFText :style="styles.text">
-              Change the title input above and watch the PDF update in real time.
-              The PDFViewer processes its slot content into a core node tree automatically.
-            </PDFText>
+          <!-- Flexbox row with 3 equal columns -->
+          <PDFView :style="styles.row">
+            <PDFView :style="styles.card">
+              <PDFText :style="styles.cardTitle">Reactive</PDFText>
+              <PDFText :style="styles.cardText">
+                Change the title above and the PDF updates in real time via Vue reactivity.
+              </PDFText>
+            </PDFView>
+            <PDFView :style="styles.card">
+              <PDFText :style="styles.cardTitle">Flexbox</PDFText>
+              <PDFText :style="styles.cardText">
+                Full flexbox layout powered by Yoga engine — row, column, gap, flex-grow.
+              </PDFText>
+            </PDFView>
+            <PDFView :style="styles.card">
+              <PDFText :style="styles.cardTitle">PDFKit</PDFText>
+              <PDFText :style="styles.cardText">
+                Built on PDFKit for high-quality PDF output with fonts, images, and links.
+              </PDFText>
+            </PDFView>
           </PDFView>
 
+          <!-- Row with badges -->
+          <PDFView :style="{ flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' }">
+            <PDFText :style="styles.badge">Vue</PDFText>
+            <PDFText :style="styles.badge">React</PDFText>
+            <PDFText :style="styles.badge">Svelte</PDFText>
+            <PDFText :style="styles.badge">Nuxt SSR</PDFText>
+            <PDFText :style="styles.badge">Next SSR</PDFText>
+          </PDFView>
+
+          <!-- Full-width section -->
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Styled components</PDFText>
             <PDFText :style="styles.text">
-              Views with backgrounds, borders and border-radius. Text with
-              font sizes, weights, colors, and line heights.
+              Views with backgrounds, borders, border-radius, and opacity. Text with
+              font sizes, weights, colors, line heights, letter spacing, and decorations.
             </PDFText>
           </PDFView>
 
+          <!-- Links section -->
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Links</PDFText>
-            <PDFText :style="styles.text">
-              Clickable links are supported:
-            </PDFText>
-            <PDFLink src="https://github.com" :style="styles.link">
-              <PDFText :style="styles.link">Visit GitHub</PDFText>
-            </PDFLink>
+            <PDFView :style="{ flexDirection: 'row', gap: 16 }">
+              <PDFLink src="https://github.com" :style="styles.link">
+                <PDFText :style="styles.link">GitHub</PDFText>
+              </PDFLink>
+              <PDFLink src="https://vuejs.org" :style="styles.link">
+                <PDFText :style="styles.link">Vue.js</PDFText>
+              </PDFLink>
+              <PDFLink src="https://react-pdf.org" :style="styles.link">
+                <PDFText :style="styles.link">react-pdf</PDFText>
+              </PDFLink>
+            </PDFView>
           </PDFView>
 
           <PDFText :style="styles.footer">
-            Built with @pdfcraft/vue — pdfkit-powered PDF generation
+            Built with @pdfcraft/vue — pdfkit + yoga layout engine
           </PDFText>
         </PDFPage>
       </PDFDocument>

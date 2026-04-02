@@ -7,5 +7,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   splitting: false,
-  external: ['fs', 'fs/promises', 'path', 'stream', 'zlib', 'crypto'],
+  external: ['fs', 'fs/promises', 'path', 'stream', 'zlib', 'crypto', 'yoga-layout', 'yoga-layout/load'],
 })
