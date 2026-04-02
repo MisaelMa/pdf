@@ -3,11 +3,33 @@ import { resolve, dirname } from 'path'
 import { createRequire } from 'module'
 import type { Plugin } from 'vite'
 
+export interface PdfkitBrowserOptions {
+  /**
+   * Extra files to include in the virtual `fs` module.
+   * Keys are file names, values are UTF-8 content strings.
+   */
+  extraFiles?: Record<string, string>
+}
+
 /**
- * Vite plugin that makes pdfkit work in the browser by providing
- * a virtual fs module with pre-loaded AFM font data and an ICC profile.
+ * Vite plugin that makes PDFKit work in the browser.
+ *
+ * It pre-loads all standard AFM font data into a virtual `fs` module so
+ * PDFKit can find its built-in fonts at runtime, and configures the
+ * necessary Node.js polyfills (stream, zlib, assert, util, Buffer, process).
+ *
+ * @example
+ * ```ts
+ * // vite.config.ts
+ * import { pdfkitBrowser } from '@pdfcraft/vite-plugin'
+ * import vue from '@vitejs/plugin-vue'
+ *
+ * export default defineConfig({
+ *   plugins: [pdfkitBrowser(), vue()],
+ * })
+ * ```
  */
-export function pdfkitBrowser(): Plugin {
+export function pdfkitBrowser(options: PdfkitBrowserOptions = {}): Plugin {
   const require = createRequire(import.meta.url)
   const pdfkitDir = dirname(require.resolve('pdfkit/package.json'))
   const dataDir = resolve(pdfkitDir, 'js/data')
@@ -32,6 +54,9 @@ export function pdfkitBrowser(): Plugin {
   const fileMap: Record<string, string> = {}
   for (const name of fontFiles) {
     fileMap[name] = readFileSync(resolve(dataDir, name), 'utf-8')
+  }
+  if (options.extraFiles) {
+    Object.assign(fileMap, options.extraFiles)
   }
 
   const virtualFsCode = `
@@ -85,7 +110,7 @@ export default { readFileSync, writeFileSync, existsSync, createReadStream, crea
             plugins: [
               {
                 name: 'pdfkit-fs-stub',
-                setup(build) {
+                setup(build: any) {
                   build.onResolve({ filter: /^(fs|node:fs)$/ }, () => ({
                     path: 'pdfkit-virtual-fs',
                     namespace: 'pdfkit-ns',

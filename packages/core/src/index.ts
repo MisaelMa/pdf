@@ -2,6 +2,7 @@ export { Document, Page, View, Text, Image, Link } from './nodes'
 export { StyleSheet, resolveStyle } from './stylesheet'
 export { Font } from './font'
 export { resolvePageSize } from './page-sizes'
+export { fetchImage, clearImageCache } from './image-loader'
 export {
   renderToBuffer,
   renderToStream,

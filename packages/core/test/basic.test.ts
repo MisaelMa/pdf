@@ -170,6 +170,17 @@ describe('Font', () => {
   })
 })
 
+describe('Font advanced', () => {
+  it('Font.load resolves without errors when no URL fonts registered', async () => {
+    Font.clear()
+    Font.register({ family: 'LocalFont', src: '/path/to/font.ttf' })
+    await Font.load()
+    const fonts = Font.getRegistered()
+    expect(fonts.get('LocalFont')?.[0].loaded).toBe(true)
+    Font.clear()
+  })
+})
+
 describe('renderToBuffer', () => {
   it('generates valid PDF bytes', async () => {
     const doc = Document({ title: 'Test PDF' }, [
@@ -284,5 +295,108 @@ describe('renderToBuffer', () => {
     ])
     const buffer = await renderToBuffer(doc)
     expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders Link with text content', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 40 } }, [
+        Link({ src: 'https://example.com' }, [
+          Text({}, 'Click here'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders Link wrapping a View', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 40 } }, [
+        Link({ src: 'https://example.com' }, [
+          View({ style: { padding: 10, backgroundColor: '#e0e7ff' } }, [
+            Text({}, 'Card link'),
+          ]),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders text transforms', async () => {
+    const doc = Document({}, [
+      Page({}, [
+        Text({ style: { textTransform: 'uppercase' } }, 'hello'),
+        Text({ style: { textTransform: 'lowercase' } }, 'HELLO'),
+        Text({ style: { textTransform: 'capitalize' } }, 'hello world'),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders text decorations', async () => {
+    const doc = Document({}, [
+      Page({}, [
+        Text({ style: { textDecoration: 'underline' } }, 'underlined'),
+        Text({ style: { textDecoration: 'line-through' } }, 'strikethrough'),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('renders dashed and dotted borders', async () => {
+    const doc = Document({}, [
+      Page({ style: { padding: 20 } }, [
+        View({ style: { borderWidth: 1, borderStyle: 'dashed', borderColor: '#999', padding: 10 } }, [
+          Text({}, 'Dashed border'),
+        ]),
+        View({ style: { borderWidth: 1, borderStyle: 'dotted', borderColor: '#999', padding: 10, marginTop: 10 } }, [
+          Text({}, 'Dotted border'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(100)
+  })
+
+  it('handles Image node with empty src gracefully', async () => {
+    const doc = Document({}, [
+      Page({}, [
+        Image({ src: '' }),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(50)
+  })
+
+  it('renders complex multi-section document', async () => {
+    const styles = StyleSheet.create({
+      page: { padding: 40, backgroundColor: '#ffffff' },
+      header: { fontSize: 28, fontWeight: 'bold', color: '#1a1a2e', textAlign: 'center', marginBottom: 10 },
+      section: { marginBottom: 15, padding: 15, backgroundColor: '#f0f4f8', borderRadius: 4, borderWidth: 1, borderColor: '#d1d5db' },
+      sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#2d3748', marginBottom: 6 },
+      text: { fontSize: 11, color: '#4a5568', lineHeight: 1.6 },
+    })
+
+    const doc = Document({ title: 'Complex Doc', author: 'Test' }, [
+      Page({ size: 'A4', style: styles.page }, [
+        Text({ style: styles.header }, 'Complex Document'),
+        View({ style: styles.section }, [
+          Text({ style: styles.sectionTitle }, 'Section 1'),
+          Text({ style: styles.text }, 'Body text for section 1 with multiple lines of content that should wrap properly within the available width.'),
+        ]),
+        View({ style: styles.section }, [
+          Text({ style: styles.sectionTitle }, 'Section 2'),
+          Text({ style: styles.text }, 'Another section with different content.'),
+        ]),
+      ]),
+      Page({ size: 'LETTER', orientation: 'landscape' }, [
+        Text({}, 'Page 2 in landscape'),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(500)
   })
 })

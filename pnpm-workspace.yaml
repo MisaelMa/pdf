@@ -1,5 +1,6 @@
 packages:
   - "packages/core"
+  - "packages/vite-plugin"
   - "packages/vue"
   - "packages/react"
   - "packages/svelte"

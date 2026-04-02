@@ -3,21 +3,22 @@ import type { PDFNode, PDFChild, LayoutNode, ResolvedStyle } from './types'
 import { resolvePageSize } from './page-sizes'
 import { resolveStyle } from './stylesheet'
 import { resolveFontName, registerFontsOnDocument } from './font'
+import { fetchImage } from './image-loader'
 
 export async function renderToBuffer(documentNode: PDFNode): Promise<Uint8Array> {
-  return new Promise((resolve, reject) => {
-    const doc = createPDFDocument(documentNode)
-    const chunks: any[] = []
-
-    doc.on('data', (chunk: any) => chunks.push(chunk))
-    doc.on('end', () => {
-      const buffer = Buffer.concat(chunks)
-      resolve(new Uint8Array(buffer))
-    })
-    doc.on('error', reject)
-
+  return new Promise(async (resolve, reject) => {
     try {
-      renderDocument(doc, documentNode)
+      const doc = createPDFDocument(documentNode)
+      const chunks: any[] = []
+
+      doc.on('data', (chunk: any) => chunks.push(chunk))
+      doc.on('end', () => {
+        const buffer = Buffer.concat(chunks)
+        resolve(new Uint8Array(buffer))
+      })
+      doc.on('error', reject)
+
+      await renderDocument(doc, documentNode)
       doc.end()
     } catch (err) {
       reject(err)
@@ -32,7 +33,7 @@ export async function renderToBlob(documentNode: PDFNode): Promise<Blob> {
 
 export async function renderToStream(documentNode: PDFNode): Promise<any> {
   const doc = createPDFDocument(documentNode)
-  renderDocument(doc, documentNode)
+  await renderDocument(doc, documentNode)
   doc.end()
   return doc
 }
@@ -72,16 +73,16 @@ function createPDFDocument(documentNode: PDFNode): PDFKit.PDFDocument {
   return doc
 }
 
-function renderDocument(doc: PDFKit.PDFDocument, documentNode: PDFNode): void {
+async function renderDocument(doc: PDFKit.PDFDocument, documentNode: PDFNode): Promise<void> {
   for (const child of documentNode.children) {
     if (typeof child === 'string') continue
     if (child.type === 'PAGE') {
-      renderPage(doc, child)
+      await renderPage(doc, child)
     }
   }
 }
 
-function renderPage(doc: PDFKit.PDFDocument, pageNode: PDFNode): void {
+async function renderPage(doc: PDFKit.PDFDocument, pageNode: PDFNode): Promise<void> {
   const size = resolvePageSize(pageNode.props.size, pageNode.props.orientation)
   doc.addPage({ size: [size.width, size.height], margin: 0 })
 
@@ -97,6 +98,8 @@ function renderPage(doc: PDFKit.PDFDocument, pageNode: PDFNode): void {
   const contentY = style.paddingTop
   const contentWidth = size.width - style.paddingLeft - style.paddingRight
 
+  await preloadImages(pageNode)
+
   const layouts = layoutChildren(
     doc,
     pageNode.children,
@@ -109,6 +112,38 @@ function renderPage(doc: PDFKit.PDFDocument, pageNode: PDFNode): void {
   for (const layout of layouts) {
     renderLayoutNode(doc, layout)
   }
+}
+
+// ── Image preloading ────────────────────────────────────────────────
+
+const loadedImages = new Map<string, Buffer>()
+
+async function preloadImages(node: PDFNode): Promise<void> {
+  const promises: Promise<void>[] = []
+
+  function walk(n: PDFChild) {
+    if (typeof n === 'string') return
+    if (n.type === 'IMAGE' && n.props.src) {
+      const src = n.props.src
+      if (typeof src === 'string' && !loadedImages.has(src)) {
+        promises.push(
+          fetchImage(src)
+            .then((buf) => {
+              loadedImages.set(src, Buffer.from(buf))
+            })
+            .catch(() => {
+              // silently skip images that can't be loaded
+            }),
+        )
+      }
+    }
+    for (const child of n.children) {
+      walk(child)
+    }
+  }
+
+  walk(node)
+  await Promise.all(promises)
 }
 
 // ── Layout pass ──────────────────────────────────────────────────────
@@ -193,8 +228,41 @@ function layoutNode(
       break
     }
 
+    case 'LINK': {
+      const hasTextChildren = node.children.some(
+        (c) => typeof c === 'string' || (typeof c !== 'string' && c.type === 'TEXT'),
+      )
+
+      if (hasTextChildren) {
+        textContent = extractText(node.children)
+        textContent = applyTextTransform(textContent, style.textTransform)
+
+        doc.save()
+        doc.fontSize(style.fontSize)
+        doc.font(resolveFontName(style))
+
+        const textOpts: any = {
+          width: Math.max(contentWidth, 0),
+          align: style.textAlign,
+        }
+        if (style.lineHeight) {
+          textOpts.lineGap = (style.lineHeight - 1) * style.fontSize
+        }
+        contentHeight = doc.heightOfString(textContent || ' ', textOpts)
+        doc.restore()
+      } else {
+        const contentX = boxX + style.paddingLeft
+        const contentY = boxY + style.paddingTop
+        childLayouts = layoutChildren(doc, node.children, contentX, contentY, contentWidth, style)
+        if (childLayouts.length > 0) {
+          const last = childLayouts[childLayouts.length - 1]
+          contentHeight = last.y + last.height + last.style.marginBottom - contentY
+        }
+      }
+      break
+    }
+
     case 'VIEW':
-    case 'LINK':
     default: {
       const contentX = boxX + style.paddingLeft
       const contentY = boxY + style.paddingTop
@@ -264,59 +332,102 @@ function renderLayoutNode(
   }
 
   if (node.type === 'TEXT' && textContent) {
-    doc.save()
-    if (style.opacity < 1) doc.opacity(style.opacity)
+    renderText(doc, layout)
+  }
 
-    doc.fontSize(style.fontSize)
-    doc.fillColor(style.color)
-    doc.font(resolveFontName(style))
-
-    const cX = x + style.paddingLeft
-    const cY = y + style.paddingTop
-    const cW = width - style.paddingLeft - style.paddingRight
-
-    const opts: any = { width: Math.max(cW, 0), align: style.textAlign }
-    if (style.lineHeight) {
-      opts.lineGap = (style.lineHeight - 1) * style.fontSize
+  if (node.type === 'LINK') {
+    if (textContent) {
+      renderText(doc, layout)
     }
-    if (style.letterSpacing) {
-      opts.characterSpacing = style.letterSpacing
+    if (node.props.src) {
+      doc.link(x, y, width, height, node.props.src)
     }
-    if (style.textDecoration === 'underline') opts.underline = true
-    if (style.textDecoration === 'line-through') opts.strike = true
-
-    doc.text(textContent, cX, cY, opts)
-    doc.restore()
   }
 
   if (node.type === 'IMAGE' && node.props.src) {
-    doc.save()
-    const cX = x + style.paddingLeft
-    const cY = y + style.paddingTop
-    const cW = width - style.paddingLeft - style.paddingRight
-    const cH = height - style.paddingTop - style.paddingBottom
-
-    try {
-      doc.image(node.props.src, cX, cY, {
-        width: cW,
-        height: cH,
-        fit: style.objectFit === 'cover' ? undefined : [cW, cH],
-        cover:
-          style.objectFit === 'cover' ? [cW, cH] : undefined,
-      })
-    } catch {
-      // skip unloadable images
-    }
-    doc.restore()
-  }
-
-  if (node.type === 'LINK' && node.props.src) {
-    doc.link(x, y, width, height, node.props.src)
+    renderImage(doc, layout)
   }
 
   for (const child of children) {
     renderLayoutNode(doc, child)
   }
+}
+
+function renderText(
+  doc: PDFKit.PDFDocument,
+  layout: LayoutNode,
+): void {
+  const { x, y, width, style, textContent } = layout
+  if (!textContent) return
+
+  doc.save()
+  if (style.opacity < 1) doc.opacity(style.opacity)
+
+  doc.fontSize(style.fontSize)
+  doc.fillColor(style.color)
+  doc.font(resolveFontName(style))
+
+  const cX = x + style.paddingLeft
+  const cY = y + style.paddingTop
+  const cW = width - style.paddingLeft - style.paddingRight
+
+  const opts: any = { width: Math.max(cW, 0), align: style.textAlign }
+  if (style.lineHeight) {
+    opts.lineGap = (style.lineHeight - 1) * style.fontSize
+  }
+  if (style.letterSpacing) {
+    opts.characterSpacing = style.letterSpacing
+  }
+  if (style.textDecoration === 'underline') opts.underline = true
+  if (style.textDecoration === 'line-through') opts.strike = true
+
+  if (layout.node.type === 'LINK') {
+    opts.link = layout.node.props.src
+    opts.underline = opts.underline ?? true
+    if (style.color === '#000000') {
+      doc.fillColor('#0000EE')
+    }
+  }
+
+  doc.text(textContent, cX, cY, opts)
+  doc.restore()
+}
+
+function renderImage(
+  doc: PDFKit.PDFDocument,
+  layout: LayoutNode,
+): void {
+  const { x, y, width, height, style, node } = layout
+  const cX = x + style.paddingLeft
+  const cY = y + style.paddingTop
+  const cW = width - style.paddingLeft - style.paddingRight
+  const cH = height - style.paddingTop - style.paddingBottom
+
+  doc.save()
+  try {
+    let imgSrc: any = node.props.src
+    if (typeof imgSrc === 'string' && loadedImages.has(imgSrc)) {
+      imgSrc = loadedImages.get(imgSrc)
+    }
+
+    const imgOpts: any = { width: cW, height: cH }
+    if (style.objectFit === 'contain') {
+      imgOpts.fit = [cW, cH]
+      imgOpts.align = 'center'
+      imgOpts.valign = 'center'
+      delete imgOpts.width
+      delete imgOpts.height
+    } else if (style.objectFit === 'cover') {
+      imgOpts.cover = [cW, cH]
+      delete imgOpts.width
+      delete imgOpts.height
+    }
+
+    doc.image(imgSrc, cX, cY, imgOpts)
+  } catch {
+    // skip images that can't be rendered
+  }
+  doc.restore()
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────

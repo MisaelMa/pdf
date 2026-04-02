@@ -6,6 +6,7 @@ import {
   PDFPage,
   PDFView,
   PDFText,
+  PDFLink,
   StyleSheet,
 } from '@pdfcraft/vue'
 
@@ -42,6 +43,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   text: { fontSize: 11, color: '#4a5568', lineHeight: 1.6 },
+  link: { fontSize: 11, color: '#2563eb', textDecoration: 'underline' },
+  footer: {
+    fontSize: 9,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 20,
+  },
 })
 </script>
 
@@ -63,14 +71,15 @@ const styles = StyleSheet.create({
           <PDFText :style="styles.subtitle">
             Generated with declarative Vue components
           </PDFText>
+
           <PDFView :style="styles.section">
-            <PDFText :style="styles.sectionTitle">Reactive amir yahved alym
-            </PDFText>
+            <PDFText :style="styles.sectionTitle">Reactive binding</PDFText>
             <PDFText :style="styles.text">
-              Change the title input and watch the PDF update. The PDFViewer
-              processes its slot content into a core node tree automatically.
+              Change the title input above and watch the PDF update in real time.
+              The PDFViewer processes its slot content into a core node tree automatically.
             </PDFText>
           </PDFView>
+
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Styled components</PDFText>
             <PDFText :style="styles.text">
@@ -78,6 +87,20 @@ const styles = StyleSheet.create({
               font sizes, weights, colors, and line heights.
             </PDFText>
           </PDFView>
+
+          <PDFView :style="styles.section">
+            <PDFText :style="styles.sectionTitle">Links</PDFText>
+            <PDFText :style="styles.text">
+              Clickable links are supported:
+            </PDFText>
+            <PDFLink src="https://github.com" :style="styles.link">
+              <PDFText :style="styles.link">Visit GitHub</PDFText>
+            </PDFLink>
+          </PDFView>
+
+          <PDFText :style="styles.footer">
+            Built with @pdfcraft/vue — pdfkit-powered PDF generation
+          </PDFText>
         </PDFPage>
       </PDFDocument>
     </PDFViewer>

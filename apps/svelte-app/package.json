@@ -10,6 +10,7 @@
     "@pdfcraft/svelte": "workspace:*"
   },
   "devDependencies": {
+    "@pdfcraft/vite-plugin": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
