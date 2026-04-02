@@ -1,3 +1,6 @@
 packages:
+  - "packages/core"
+  - "packages/vue"
+  - "packages/react"
+  - "packages/svelte"
   - "apps/*"
-  - "packages/*"
