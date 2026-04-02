@@ -12,6 +12,7 @@ export {
 export { usePDF } from './usePDF'
 export { PDFViewer } from './PDFViewer'
 export { PDFDownloadLink } from './PDFDownloadLink'
+export { buildPDFTree } from './tree-builder'
 
 // Re-export non-conflicting core utilities
 export {
