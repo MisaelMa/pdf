@@ -245,9 +245,18 @@ importers:
 
   apps/vue-app:
     dependencies:
+      '@monaco-editor/loader':
+        specifier: ^1.7.0
+        version: 1.7.0
       '@pdfcraft/vue':
         specifier: workspace:*
         version: link:../../packages/vue
+      monaco-editor:
+        specifier: ^0.55.1
+        version: 0.55.1
+      sucrase:
+        specifier: ^3.35.1
+        version: 3.35.1
       vue:
         specifier: ^3.5.13
         version: 3.5.31(typescript@5.9.3)

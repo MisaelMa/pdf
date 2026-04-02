@@ -9,7 +9,9 @@ import {
   PDFLink,
   StyleSheet,
 } from '@pdfcraft/vue'
+import Playground from './Playground.vue'
 
+const tab = ref<'demo' | 'playground'>('demo')
 const title = ref('PDFCraft Vue Demo')
 
 const styles = StyleSheet.create({
@@ -82,13 +84,30 @@ const styles = StyleSheet.create({
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: 100vh; padding: 16px; gap: 12px">
-    <div style="display: flex; align-items: center; gap: 12px">
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button
+      :class="['tab', tab === 'demo' && 'tab-active']"
+      @click="tab = 'demo'"
+    >
+      Demo
+    </button>
+    <button
+      :class="['tab', tab === 'playground' && 'tab-active']"
+      @click="tab = 'playground'"
+    >
+      Playground
+    </button>
+  </div>
+
+  <!-- Demo view -->
+  <div v-if="tab === 'demo'" class="demo">
+    <div class="demo-toolbar">
       <h2 style="white-space: nowrap; margin: 0">Vue Demo</h2>
       <input
         v-model="title"
         placeholder="PDF Title"
-        style="flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px"
+        class="demo-input"
       />
     </div>
 
@@ -100,7 +119,6 @@ const styles = StyleSheet.create({
             Generated with declarative Vue components + Yoga flexbox layout
           </PDFText>
 
-          <!-- Flexbox row with 3 equal columns -->
           <PDFView :style="styles.row">
             <PDFView :style="styles.card">
               <PDFText :style="styles.cardTitle">Reactive</PDFText>
@@ -122,7 +140,6 @@ const styles = StyleSheet.create({
             </PDFView>
           </PDFView>
 
-          <!-- Row with badges -->
           <PDFView :style="{ flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' }">
             <PDFText :style="styles.badge">Vue</PDFText>
             <PDFText :style="styles.badge">React</PDFText>
@@ -131,7 +148,6 @@ const styles = StyleSheet.create({
             <PDFText :style="styles.badge">Next SSR</PDFText>
           </PDFView>
 
-          <!-- Full-width section -->
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Styled components</PDFText>
             <PDFText :style="styles.text">
@@ -140,7 +156,6 @@ const styles = StyleSheet.create({
             </PDFText>
           </PDFView>
 
-          <!-- Links section -->
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Links</PDFText>
             <PDFView :style="{ flexDirection: 'row', gap: 16 }">
@@ -163,4 +178,79 @@ const styles = StyleSheet.create({
       </PDFDocument>
     </PDFViewer>
   </div>
+
+  <!-- Playground view -->
+  <Playground v-if="tab === 'playground'" />
 </template>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+.tab {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  color: #e2e8f0;
+  background: #334155;
+}
+
+.tab-active {
+  color: #f8fafc;
+  border-bottom-color: #10b981;
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px;
+  gap: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  height: calc(100vh - 43px);
+}
+
+.demo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+</style>
