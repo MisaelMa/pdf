@@ -1,15 +1,24 @@
+import { transform } from 'sucrase'
 import * as PdfcraftReact from '@pdfcraft/react'
 import React from 'react'
 
 /**
- * Compile user code string into a React component.
- * Strips import statements and evaluates the remaining code.
+ * Compile user JSX/TSX code into a React component.
+ * 1. Strip import statements
+ * 2. Transpile JSX → React.createElement via sucrase
+ * 3. Evaluate with PDFCraft in scope
  */
-export function compileCode(code: string): React.ComponentType | null {
+export function compileCode(code: string): { component: React.ComponentType | null; error: string | null } {
   try {
-    const cleaned = code
-      .replace(/^import\s+.*from\s+['"][^'"]+['"]\s*;?\s*$/gm, '')
+    let cleaned = code
+      .replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"]\s*;?\s*$/gm, '')
       .replace(/^export\s+default\s+/gm, 'const __DefaultExport__ = ')
+
+    const { code: transpiled } = transform(cleaned, {
+      transforms: ['jsx', 'typescript'],
+      jsxRuntime: 'classic',
+      production: true,
+    })
 
     const scope = {
       React,
@@ -30,17 +39,16 @@ export function compileCode(code: string): React.ComponentType | null {
     const fn = new Function(
       ...paramNames,
       `"use strict";
-       ${cleaned}
+       ${transpiled}
        if (typeof __DefaultExport__ !== 'undefined') return __DefaultExport__;
        if (typeof MyDocument !== 'undefined') return MyDocument;
        return null;`,
     )
 
     const Component = fn(...paramValues)
-    if (typeof Component === 'function') return Component
-    return null
-  } catch (err) {
-    console.error('[REPL compile]', err)
-    return null
+    if (typeof Component === 'function') return { component: Component, error: null }
+    return { component: null, error: 'No default export found. Export a function component as default.' }
+  } catch (err: any) {
+    return { component: null, error: err?.message || String(err) }
   }
 }

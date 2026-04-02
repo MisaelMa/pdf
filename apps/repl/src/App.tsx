@@ -20,9 +20,9 @@ export default function App() {
     setError('')
 
     try {
-      const Component = compileCode(source)
-      if (!Component) {
-        setError('No default export found. Export a component as default.')
+      const { component: Component, error: compileError } = compileCode(source)
+      if (compileError || !Component) {
+        setError(compileError || 'No default export found. Export a component as default.')
         setLoading(false)
         return
       }
