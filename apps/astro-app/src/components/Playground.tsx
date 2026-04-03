@@ -54,7 +54,7 @@ return (
         </Text>
       </View>
 
-      <Text style={styles.footer}>PDFCraft Playground — pdfkit + yoga layout engine</Text>
+      <Text style={styles.footer}>PDFCraft Playground — pdf-lib + yoga layout engine</Text>
     </Page>
   </Document>
 )

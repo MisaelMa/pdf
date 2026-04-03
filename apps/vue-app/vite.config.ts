@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { pdfkitBrowser } from '@pdfcraft/vite-plugin'
+import { pdfcraftBrowser } from '@pdf.js/vite-plugin'
 
 export default defineConfig({
-  plugins: [pdfkitBrowser(), vue()],
+  plugins: [pdfcraftBrowser(), vue()],
+  optimizeDeps: {
+    include: ['pdfjs-dist'],
+  },
 })

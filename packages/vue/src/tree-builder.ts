@@ -11,7 +11,7 @@ import {
   TableCell,
   type PDFNode,
   type PDFChild,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 /**
  * Walks a Vue VNode tree produced by `slots.default()` and converts

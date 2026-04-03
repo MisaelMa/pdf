@@ -8,12 +8,12 @@
   },
   "dependencies": {
     "@monaco-editor/loader": "^1.4.0",
-    "@pdfcraft/svelte": "workspace:*",
+    "@pdf.js/svelte": "workspace:*",
     "monaco-editor": "^0.50.0",
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
-    "@pdfcraft/vite-plugin": "workspace:*",
+    "@pdf.js/vite-plugin": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "svelte": "^5.0.0",
     "vite": "^6.3.0",

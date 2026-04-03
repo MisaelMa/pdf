@@ -8,13 +8,13 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@pdfcraft/react": "workspace:*",
+    "@pdf.js/react": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sucrase": "^3.35.0"
   },
   "devDependencies": {
-    "@pdfcraft/vite-plugin": "workspace:*",
+    "@pdf.js/vite-plugin": "workspace:*",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.4.0",

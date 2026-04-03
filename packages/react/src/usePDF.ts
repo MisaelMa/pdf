@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import type { PDFNode } from '@pdfcraft/core'
-import { renderToBlob } from '@pdfcraft/core'
+import type { PDFNode } from '@pdf.js/core'
+import { renderToBlob } from '@pdf.js/core'
 
 export interface UsePDFReturn {
   url: string

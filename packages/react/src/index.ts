@@ -25,7 +25,7 @@ export {
   renderToStream,
   renderToBlob,
   renderToFile,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 // Re-export types
 export type {
@@ -34,7 +34,7 @@ export type {
   PDFStyle,
   PageSize,
   PageOrientation,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 export type { UsePDFReturn } from './usePDF'
 export type { PDFViewerProps } from './PDFViewer'

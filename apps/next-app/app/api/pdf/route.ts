@@ -5,7 +5,7 @@ import {
   Text,
   StyleSheet,
   renderToBuffer,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 const styles = StyleSheet.create({
   page: { padding: 40, backgroundColor: '#ffffff' },
@@ -52,7 +52,7 @@ export async function GET() {
         Text({ style: styles.sectionTitle }, 'Server Components + API Routes'),
         Text(
           { style: styles.text },
-          'Next.js App Router API routes run on the server where PDFKit works ' +
+          'Next.js App Router API routes run on the server where pdf-lib works ' +
             'natively. No browser polyfills needed for SSR.',
         ),
       ]),
@@ -60,7 +60,7 @@ export async function GET() {
         Text({ style: styles.sectionTitle }, 'Framework agnostic core'),
         Text(
           { style: styles.text },
-          '@pdfcraft/core works in any JS runtime: Node.js, Deno, Bun, ' +
+          '@pdf.js/core works in any JS runtime: Node.js, Deno, Bun, ' +
             'Cloudflare Workers, or the browser with polyfills.',
         ),
       ]),

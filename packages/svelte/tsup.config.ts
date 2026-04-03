@@ -7,5 +7,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   splitting: false,
-  external: ['svelte', 'svelte/store', '@pdfcraft/core'],
+  external: ['svelte', 'svelte/store', '@pdf.js/core'],
 })

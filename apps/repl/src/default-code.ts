@@ -5,7 +5,7 @@ export const DEFAULT_CODE = `import {
   Text,
   Link,
   StyleSheet,
-} from '@pdfcraft/react'
+} from '@pdf.js/react'
 
 const styles = StyleSheet.create({
   page: {
@@ -125,7 +125,7 @@ export default function MyDocument() {
         </View>
 
         <Text style={styles.footer}>
-          PDFCraft REPL — pdfkit + yoga layout engine
+          PDFCraft REPL — pdf-lib + yoga layout engine
         </Text>
       </Page>
     </Document>

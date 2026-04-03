@@ -1,5 +1,5 @@
 {
-  "name": "@pdfcraft/vite-plugin",
+  "name": "@pdf.js/vite-plugin",
   "version": "0.1.0",
   "description": "Vite plugin for PDFCraft browser compatibility",
   "license": "MIT",

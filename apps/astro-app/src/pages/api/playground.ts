@@ -13,7 +13,7 @@ import {
   StyleSheet,
   Font,
   renderToBuffer,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 const CORE_TYPES = new Set([Document, Page, View, Text, Image, Link, Table, TableRow, TableCell])
 

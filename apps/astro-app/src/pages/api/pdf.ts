@@ -6,7 +6,7 @@ import {
   Text,
   StyleSheet,
   renderToBuffer,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 const styles = StyleSheet.create({
   page: { padding: 40, backgroundColor: '#ffffff' },
@@ -45,20 +45,20 @@ export const GET: APIRoute = async () => {
   const doc = Document({ title: 'Astro PDF Demo', author: 'PDFCraft' }, [
     Page({ size: 'A4', style: styles.page }, [
       Text({ style: styles.header }, 'PDFCraft Astro Demo'),
-      Text({ style: styles.subtitle }, 'Generated server-side with @pdfcraft/core'),
+      Text({ style: styles.subtitle }, 'Generated server-side with @pdf.js/core'),
       View({ style: styles.section }, [
         Text({ style: styles.sectionTitle }, 'Server-side rendering'),
         Text(
           { style: styles.text },
           'This PDF is generated on the server using an Astro API route. ' +
-          'No browser polyfills needed — PDFKit runs natively in Node.js.',
+          'No browser polyfills needed — pdf-lib runs natively in both Node.js and browsers.',
         ),
       ]),
       View({ style: styles.section }, [
         Text({ style: styles.sectionTitle }, 'Framework agnostic'),
         Text(
           { style: styles.text },
-          'The @pdfcraft/core package works anywhere JavaScript runs: ' +
+          'The @pdf.js/core package works anywhere JavaScript runs: ' +
           'Node.js, Deno, Bun, Cloudflare Workers, or the browser with polyfills.',
         ),
       ]),

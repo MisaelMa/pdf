@@ -1,6 +1,6 @@
 import { writable, type Writable, type Readable } from 'svelte/store'
-import type { PDFNode } from '@pdfcraft/core'
-import { renderToBlob } from '@pdfcraft/core'
+import type { PDFNode } from '@pdf.js/core'
+import { renderToBlob } from '@pdf.js/core'
 
 export interface UsePDFReturn {
   url: Readable<string>
@@ -20,7 +20,7 @@ export interface UsePDFReturn {
  * @example
  * ```svelte
  * <script>
- *   import { usePDF, Document, Page, Text } from '@pdfcraft/svelte'
+ *   import { usePDF, Document, Page, Text } from '@pdf.js/svelte'
  *   import { onDestroy } from 'svelte'
  *
  *   const { url, loading, destroy } = usePDF(() =>

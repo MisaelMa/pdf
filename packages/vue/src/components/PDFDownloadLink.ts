@@ -4,8 +4,8 @@ import {
   ref,
   type PropType,
 } from 'vue'
-import type { PDFNode } from '@pdfcraft/core'
-import { renderToBlob } from '@pdfcraft/core'
+import type { PDFNode } from '@pdf.js/core'
+import { renderToBlob } from '@pdf.js/core'
 
 /**
  * Renders a clickable link that generates and downloads a PDF on click.

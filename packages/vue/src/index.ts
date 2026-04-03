@@ -3,6 +3,7 @@ export { usePDF } from './composables/usePDF'
 
 // Viewer & download
 export { PDFViewer } from './components/PDFViewer'
+export { PDFCanvasViewer } from './components/PDFCanvasViewer'
 export { PDFDownloadLink } from './components/PDFDownloadLink'
 
 // Declarative PDF components
@@ -38,7 +39,7 @@ export {
   renderToStream,
   renderToBlob,
   renderToFile,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 export type {
   PDFNode,
@@ -55,4 +56,4 @@ export type {
   TableProps,
   TableRowProps,
   TableCellProps,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'

@@ -7,7 +7,7 @@
     View,
     Text,
     StyleSheet,
-  } from '@pdfcraft/svelte'
+  } from '@pdf.js/svelte'
   import Playground from './Playground.svelte'
 
   const styles = StyleSheet.create({
@@ -26,7 +26,7 @@
     Document({ title, author: 'PDFCraft' }, [
       Page({ size: 'A4', style: styles.page }, [
         Text({ style: styles.header }, title),
-        Text({ style: styles.subtitle }, 'Generated with @pdfcraft/svelte'),
+        Text({ style: styles.subtitle }, 'Generated with @pdf.js/svelte'),
         View({ style: styles.section }, [
           Text({ style: styles.sectionTitle }, 'Store-based API'),
           Text({ style: styles.text }, 'The usePDF function returns Svelte stores. Subscribe with $ auto-syntax for reactive updates.'),

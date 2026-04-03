@@ -1,5 +1,5 @@
 {
-  "name": "@pdfcraft/core",
+  "name": "@pdf.js/core",
   "version": "0.1.0",
   "description": "Framework-agnostic PDF generation engine powered by pdf-lib",
   "license": "MIT",

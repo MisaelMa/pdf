@@ -7,7 +7,7 @@ import {
   Text,
   Link,
   StyleSheet,
-} from '@pdfcraft/react'
+} from '@pdf.js/react'
 import Playground from './Playground'
 
 const styles = StyleSheet.create({
@@ -63,8 +63,8 @@ export default function App() {
                     <Text style={styles.cardText}>Full flexbox layout with Yoga — row, column, gap, flex-grow.</Text>
                   </View>
                   <View style={styles.card}>
-                    <Text style={styles.cardTitle}>PDFKit</Text>
-                    <Text style={styles.cardText}>High-quality PDF output with fonts, images, and links.</Text>
+                    <Text style={styles.cardTitle}>pdf-lib</Text>
+                    <Text style={styles.cardText}>High-quality PDF output with fonts, images, links, and forms.</Text>
                   </View>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' }}>
@@ -86,7 +86,7 @@ export default function App() {
                     <Link src="https://react-pdf.org" style={styles.link}><Text style={styles.link}>react-pdf</Text></Link>
                   </View>
                 </View>
-                <Text style={styles.footer}>Built with @pdfcraft/react — pdfkit + yoga layout engine</Text>
+                <Text style={styles.footer}>Built with @pdf.js/react — pdf-lib + yoga layout engine</Text>
               </Page>
             </Document>
           </PDFViewer>

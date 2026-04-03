@@ -1,5 +1,5 @@
 {
-  "name": "@pdfcraft/react",
+  "name": "@pdf.js/react",
   "version": "0.1.0",
   "description": "React integration for pdfcraft — hooks and components for PDF generation",
   "license": "MIT",
@@ -25,7 +25,7 @@
     "lint": "echo 'no linter configured'"
   },
   "dependencies": {
-    "@pdfcraft/core": "workspace:*"
+    "@pdf.js/core": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

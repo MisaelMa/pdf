@@ -1,5 +1,5 @@
 {
-  "name": "@pdfcraft/svelte",
+  "name": "@pdf.js/svelte",
   "version": "0.1.0",
   "description": "Svelte integration for pdfcraft — stores and utilities for PDF generation",
   "license": "MIT",
@@ -25,7 +25,7 @@
     "lint": "echo 'no linter configured'"
   },
   "dependencies": {
-    "@pdfcraft/core": "workspace:*"
+    "@pdf.js/core": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^4.0.0 || ^5.0.0"

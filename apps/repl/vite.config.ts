@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { pdfkitBrowser } from '@pdfcraft/vite-plugin'
+import { pdfcraftBrowser } from '@pdf.js/vite-plugin'
 
 export default defineConfig({
-  plugins: [pdfkitBrowser(), react()],
+  plugins: [pdfcraftBrowser(), react()],
 })

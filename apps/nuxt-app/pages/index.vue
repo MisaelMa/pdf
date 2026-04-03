@@ -7,9 +7,9 @@ import {
   PDFView,
   PDFText,
   StyleSheet,
-} from '@pdfcraft/vue'
+} from '@pdf.js/vue'
 
-const tab = ref<'demo' | 'playground'>('demo')
+const tab = ref<'demo' | 'canvas' | 'playground'>('demo')
 const title = ref('PDFCraft Nuxt Demo')
 const mode = ref<'declarative' | 'ssr'>('declarative')
 
@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
   <div style="display: flex; flex-direction: column; height: 100vh; font-family: system-ui, sans-serif; background: #f8f9fa">
     <div class="tab-bar">
       <button :class="['tab', tab === 'demo' && 'tab-active']" @click="tab = 'demo'">Demo</button>
+      <button :class="['tab', tab === 'canvas' && 'tab-active']" @click="tab = 'canvas'">Canvas Viewer</button>
       <button :class="['tab', tab === 'playground' && 'tab-active']" @click="tab = 'playground'">Playground</button>
     </div>
 
@@ -60,6 +61,10 @@ const styles = StyleSheet.create({
       <iframe v-if="mode === 'ssr'" src="/api/pdf" title="Server-rendered PDF"
         style="flex: 1; border: none; border-radius: 8px" />
     </div>
+
+    <ClientOnly v-if="tab === 'canvas'">
+      <PDFCanvasViewer />
+    </ClientOnly>
 
     <ClientOnly v-if="tab === 'playground'">
       <Playground />

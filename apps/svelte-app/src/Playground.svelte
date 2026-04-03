@@ -15,8 +15,8 @@
     StyleSheet,
     Font,
     renderToBlob,
-  } from '@pdfcraft/svelte'
-  import type { PDFNode } from '@pdfcraft/svelte'
+  } from '@pdf.js/svelte'
+  import type { PDFNode } from '@pdf.js/svelte'
 
   let editorContainer: HTMLDivElement
   let pdfUrl = $state('')
@@ -80,7 +80,7 @@ return (
         </Text>
       </View>
 
-      <Text style={styles.footer}>PDFCraft Playground — pdfkit + yoga layout engine</Text>
+      <Text style={styles.footer}>PDFCraft Playground — pdf-lib + yoga layout engine</Text>
     </Page>
   </Document>
 )

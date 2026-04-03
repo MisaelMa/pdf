@@ -7,5 +7,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   splitting: false,
-  external: ['vue', '@pdfcraft/core'],
+  external: ['vue', '@pdf.js/core', 'pdfjs-dist'],
 })

@@ -7,14 +7,15 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
-    "@pdfcraft/core": "workspace:*",
-    "@pdfcraft/vue": "workspace:*",
+    "@pdf.js/core": "workspace:*",
+    "@pdf.js/vue": "workspace:*",
     "nuxt": "^3.17.0",
+    "pdfjs-dist": "^5.6.205",
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@pdfcraft/vite-plugin": "workspace:*",
     "@monaco-editor/loader": "^1.4.0",
+    "@pdf.js/vite-plugin": "workspace:*",
     "monaco-editor": "^0.50.0",
     "sucrase": "^3.35.0",
     "typescript": "^5.7.0"

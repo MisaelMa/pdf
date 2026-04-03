@@ -14,8 +14,8 @@ import {
   StyleSheet,
   Font,
   renderToBlob,
-} from '@pdfcraft/react'
-import type { PDFNode } from '@pdfcraft/react'
+} from '@pdf.js/react'
+import type { PDFNode } from '@pdf.js/react'
 
 const DEFAULT_CODE = `const styles = StyleSheet.create({
   page: { padding: 40, backgroundColor: '#ffffff' },
@@ -70,7 +70,7 @@ return (
         </Text>
       </View>
 
-      <Text style={styles.footer}>PDFCraft Playground — pdfkit + yoga layout engine</Text>
+      <Text style={styles.footer}>PDFCraft Playground — pdf-lib + yoga layout engine</Text>
     </Page>
   </Document>
 )

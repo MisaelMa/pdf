@@ -18,7 +18,7 @@ export {
   renderToStream,
   renderToBlob,
   renderToFile,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 export type {
   PDFNode,
@@ -35,4 +35,4 @@ export type {
   TableProps,
   TableRowProps,
   TableCellProps,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'

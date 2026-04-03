@@ -5,7 +5,7 @@ import {
   Text,
   StyleSheet,
   renderToBuffer,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 const styles = StyleSheet.create({
   page: { padding: 40, backgroundColor: '#ffffff' },
@@ -52,7 +52,7 @@ export default defineEventHandler(async () => {
         Text({ style: styles.sectionTitle }, 'Server-side rendering'),
         Text(
           { style: styles.text },
-          'The /api/pdf endpoint uses @pdfcraft/core to generate a PDF ' +
+          'The /api/pdf endpoint uses @pdf.js/core to generate a PDF ' +
             'entirely on the server. No browser polyfills needed.',
         ),
       ]),
@@ -61,8 +61,8 @@ export default defineEventHandler(async () => {
         Text(
           { style: styles.text },
           '1. Nuxt receives the request\n' +
-            '2. @pdfcraft/core builds the node tree\n' +
-            '3. PDFKit renders it to a buffer\n' +
+            '2. @pdf.js/core builds the node tree\n' +
+            '3. pdf-lib renders it to a buffer\n' +
             '4. The buffer is returned as application/pdf',
         ),
       ]),

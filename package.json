@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "pdfcraft",
+  "name": "pdf.js",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo run build",

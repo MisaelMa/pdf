@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, type CSSProperties } from 'react'
 import Editor from '@monaco-editor/react'
-import { renderToBlob, buildPDFTree } from '@pdfcraft/react'
+import { renderToBlob, buildPDFTree } from '@pdf.js/react'
 import { DEFAULT_CODE } from './default-code'
 import { compileCode } from './compile'
 

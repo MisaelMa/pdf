@@ -1,5 +1,5 @@
 import { defineComponent, type PropType } from 'vue'
-import type { PDFStyle, PageSize, PageOrientation } from '@pdfcraft/core'
+import type { PDFStyle, PageSize, PageOrientation } from '@pdf.js/core'
 
 function pdfComponent(
   name: string,

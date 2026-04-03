@@ -10,7 +10,7 @@ import {
   type PropType,
   type VNode,
 } from 'vue'
-import { renderToBlob } from '@pdfcraft/core'
+import { renderToBlob } from '@pdf.js/core'
 import { buildPDFTree } from '../tree-builder'
 
 export const PDFViewer = defineComponent({

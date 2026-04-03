@@ -9,15 +9,15 @@ import type { Plugin } from 'vite'
  *
  * @example
  * ```ts
- * import { pdfkitBrowser } from '@pdfcraft/vite-plugin'
+ * import { pdfcraftBrowser } from '@pdf.js/vite-plugin'
  * import vue from '@vitejs/plugin-vue'
  *
  * export default defineConfig({
- *   plugins: [pdfkitBrowser(), vue()],
+ *   plugins: [pdfcraftBrowser(), vue()],
  * })
  * ```
  */
-export function pdfkitBrowser(): Plugin {
+export function pdfcraftBrowser(): Plugin {
   return {
     name: 'pdfcraft-browser',
     config() {

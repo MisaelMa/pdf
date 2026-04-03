@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { PDFStyle, PageSize, PageOrientation } from '@pdfcraft/core'
+import type { PDFStyle, PageSize, PageOrientation } from '@pdf.js/core'
 
 // Each component is a thin marker — it renders its children as a React
 // fragment so the tree can be inspected by PDFViewer without hitting the DOM.

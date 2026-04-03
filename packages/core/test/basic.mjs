@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
 const doc = Document({ title: 'PDFCraft Demo', author: 'PDFCraft' }, [
   Page({ size: 'A4', style: styles.page }, [
     Text({ style: styles.header }, 'PDFCraft Demo Document'),
-    Text({ style: styles.subtitle }, 'Generated with @pdfcraft/core'),
+    Text({ style: styles.subtitle }, 'Generated with @pdf.js/core'),
 
     View({ style: styles.section }, [
       Text({ style: styles.sectionTitle }, 'What is PDFCraft?'),
       Text(
         { style: styles.text },
-        'PDFCraft is a framework-agnostic PDF generation library that uses PDFKit under the hood. ' +
+        'PDFCraft is a framework-agnostic PDF generation library that uses pdf-lib under the hood. ' +
           'It provides a component-based API similar to react-pdf, but works with Vue, Svelte, ' +
           'or plain JavaScript.',
       ),
@@ -80,7 +80,7 @@ const doc = Document({ title: 'PDFCraft Demo', author: 'PDFCraft' }, [
           '• Works in Node.js and browsers\n' +
           '• SSR and CSR support\n' +
           '• Custom font registration\n' +
-          '• PDF form support via PDFKit',
+          '• PDF form support via pdf-lib',
       ),
     ]),
 

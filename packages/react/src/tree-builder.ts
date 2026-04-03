@@ -11,7 +11,7 @@ import {
   TableCell as CoreTableCell,
   type PDFNode,
   type PDFChild,
-} from '@pdfcraft/core'
+} from '@pdf.js/core'
 
 /**
  * Walks a React element tree and converts elements whose `.type` carries a

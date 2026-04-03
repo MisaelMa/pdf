@@ -15,8 +15,8 @@ import {
   StyleSheet,
   Font,
   renderToBlob,
-} from '@pdfcraft/vue'
-import type { PDFNode } from '@pdfcraft/vue'
+} from '@pdf.js/vue'
+import type { PDFNode } from '@pdf.js/vue'
 
 const editorContainer = ref<HTMLDivElement>()
 const pdfUrl = ref('')

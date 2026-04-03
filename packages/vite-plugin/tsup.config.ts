@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   shims: true,
-  external: ['vite', 'pdfkit'],
+  external: ['vite'],
 })

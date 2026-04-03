@@ -1,5 +1,5 @@
 import { transform } from 'sucrase'
-import * as PdfcraftReact from '@pdfcraft/react'
+import * as PdfcraftReact from '@pdf.js/react'
 import React from 'react'
 
 /**

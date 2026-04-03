@@ -7,7 +7,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   splitting: false,
-  external: ['react', 'react-dom', '@pdfcraft/core'],
+  external: ['react', 'react-dom', '@pdf.js/core'],
   esbuildOptions(options) {
     options.jsx = 'automatic'
   },

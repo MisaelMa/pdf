@@ -8,10 +8,11 @@ import {
   PDFText,
   PDFLink,
   StyleSheet,
-} from '@pdfcraft/vue'
+} from '@pdf.js/vue'
 import Playground from './Playground.vue'
+import PDFCanvasViewer from './PDFCanvasViewer.vue'
 
-const tab = ref<'demo' | 'playground'>('demo')
+const tab = ref<'demo' | 'canvas' | 'playground'>('demo')
 const title = ref('PDFCraft Vue Demo')
 
 const styles = StyleSheet.create({
@@ -93,6 +94,12 @@ const styles = StyleSheet.create({
       Demo
     </button>
     <button
+      :class="['tab', tab === 'canvas' && 'tab-active']"
+      @click="tab = 'canvas'"
+    >
+      Canvas Viewer
+    </button>
+    <button
       :class="['tab', tab === 'playground' && 'tab-active']"
       @click="tab = 'playground'"
     >
@@ -133,9 +140,9 @@ const styles = StyleSheet.create({
               </PDFText>
             </PDFView>
             <PDFView :style="styles.card">
-              <PDFText :style="styles.cardTitle">PDFKit</PDFText>
+              <PDFText :style="styles.cardTitle">pdf-lib</PDFText>
               <PDFText :style="styles.cardText">
-                Built on PDFKit for high-quality PDF output with fonts, images, and links.
+                Built on pdf-lib for high-quality PDF output with fonts, images, links, and forms.
               </PDFText>
             </PDFView>
           </PDFView>
@@ -172,12 +179,15 @@ const styles = StyleSheet.create({
           </PDFView>
 
           <PDFText :style="styles.footer">
-            Built with @pdfcraft/vue — pdfkit + yoga layout engine
+            Built with @pdf.js/vue — pdf-lib + yoga layout engine
           </PDFText>
         </PDFPage>
       </PDFDocument>
     </PDFViewer>
   </div>
+
+  <!-- Canvas viewer -->
+  <PDFCanvasViewer v-if="tab === 'canvas'" />
 
   <!-- Playground view -->
   <Playground v-if="tab === 'playground'" />

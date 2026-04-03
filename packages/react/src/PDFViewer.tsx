@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, type CSSProperties, type ReactNode } from 'react'
-import { renderToBlob } from '@pdfcraft/core'
+import { renderToBlob } from '@pdf.js/core'
 import { buildPDFTree } from './tree-builder'
 
 export interface PDFViewerProps {
