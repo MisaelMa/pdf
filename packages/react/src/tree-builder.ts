@@ -6,6 +6,9 @@ import {
   Text as CoreText,
   Image as CoreImage,
   Link as CoreLink,
+  Table as CoreTable,
+  TableRow as CoreTableRow,
+  TableCell as CoreTableCell,
   type PDFNode,
   type PDFChild,
 } from '@pdfcraft/core'
@@ -43,6 +46,9 @@ function processElement(element: any): PDFChild | null {
       case 'PAGE':
         return CorePage(restProps, childNodes)
       case 'VIEW':
+        if (type.__pdfTableHint === 'TABLE') return CoreTable(restProps, childNodes)
+        if (type.__pdfTableHint === 'TABLE_ROW') return CoreTableRow(restProps, childNodes)
+        if (type.__pdfTableHint === 'TABLE_CELL') return CoreTableCell(restProps, childNodes)
         return CoreView(restProps, childNodes)
       case 'TEXT':
         return CoreText(restProps, childNodes)

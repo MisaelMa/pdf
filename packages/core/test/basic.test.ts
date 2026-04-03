@@ -6,6 +6,9 @@ import {
   Text,
   Image,
   Link,
+  Table,
+  TableRow,
+  TableCell,
   StyleSheet,
   Font,
   renderToBuffer,
@@ -523,6 +526,82 @@ describe('renderToBuffer', () => {
       ]),
       Page({ size: 'LETTER', orientation: 'landscape' }, [
         Text({}, 'Page 2 in landscape'),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(500)
+  })
+
+  it('renders views with borderRadius (rounded rectangles)', async () => {
+    const doc = Document({ title: 'Rounded' }, [
+      Page({ size: 'A4', style: { padding: 30 } }, [
+        View({ style: { backgroundColor: '#3b82f6', borderRadius: 12, padding: 16 } }, [
+          Text({ style: { color: '#ffffff', fontSize: 14 } }, 'Rounded card'),
+        ]),
+        View({ style: { borderWidth: 2, borderColor: '#ef4444', borderRadius: 8, padding: 10, marginTop: 10 } }, [
+          Text({}, 'Rounded border only'),
+        ]),
+        View({ style: { backgroundColor: '#10b981', borderWidth: 1, borderColor: '#065f46', borderRadius: 20, padding: 12, marginTop: 10 } }, [
+          Text({ style: { color: '#ffffff' } }, 'Fill + stroke rounded'),
+        ]),
+      ]),
+    ])
+    const buffer = await renderToBuffer(doc)
+    expect(buffer.length).toBeGreaterThan(500)
+  })
+})
+
+describe('Table components', () => {
+  it('creates Table node as VIEW with column direction', () => {
+    const table = Table({}, [])
+    expect(table.type).toBe('VIEW')
+    expect(table.props.style.flexDirection).toBe('column')
+  })
+
+  it('creates TableRow node as VIEW with row direction', () => {
+    const row = TableRow({}, [])
+    expect(row.type).toBe('VIEW')
+    expect(row.props.style.flexDirection).toBe('row')
+  })
+
+  it('creates TableCell node as VIEW with flex and default styles', () => {
+    const cell = TableCell({}, 'Hello')
+    expect(cell.type).toBe('VIEW')
+    expect(cell.props.style.flex).toBe(1)
+    expect(cell.props.style.padding).toBe(6)
+    expect(cell.props.style.borderWidth).toBe(0.5)
+  })
+
+  it('supports colSpan in TableCell', () => {
+    const cell = TableCell({ colSpan: 3 }, 'Wide cell')
+    expect(cell.props.style.flex).toBe(3)
+  })
+
+  it('renders a full table to PDF buffer', async () => {
+    const doc = Document({ title: 'Table Test' }, [
+      Page({ size: 'A4', style: { padding: 40 } }, [
+        Text({ style: { fontSize: 18, marginBottom: 10, fontWeight: 'bold' } }, 'Invoice'),
+        Table({ style: { borderWidth: 1, borderColor: '#000000' } }, [
+          TableRow({ style: { backgroundColor: '#374151' } }, [
+            TableCell({}, [Text({ style: { color: '#ffffff', fontWeight: 'bold', fontSize: 10 } }, 'Item')]),
+            TableCell({}, [Text({ style: { color: '#ffffff', fontWeight: 'bold', fontSize: 10 } }, 'Qty')]),
+            TableCell({}, [Text({ style: { color: '#ffffff', fontWeight: 'bold', fontSize: 10 } }, 'Price')]),
+          ]),
+          TableRow({}, [
+            TableCell({}, [Text({ style: { fontSize: 10 } }, 'Widget A')]),
+            TableCell({}, [Text({ style: { fontSize: 10 } }, '5')]),
+            TableCell({}, [Text({ style: { fontSize: 10 } }, '$25.00')]),
+          ]),
+          TableRow({ style: { backgroundColor: '#f3f4f6' } }, [
+            TableCell({}, [Text({ style: { fontSize: 10 } }, 'Widget B')]),
+            TableCell({}, [Text({ style: { fontSize: 10 } }, '10')]),
+            TableCell({}, [Text({ style: { fontSize: 10 } }, '$50.00')]),
+          ]),
+          TableRow({}, [
+            TableCell({ colSpan: 2 }, [Text({ style: { fontSize: 10, fontWeight: 'bold' } }, 'Total')]),
+            TableCell({}, [Text({ style: { fontSize: 10, fontWeight: 'bold' } }, '$75.00')]),
+          ]),
+        ]),
       ]),
     ])
     const buffer = await renderToBuffer(doc)

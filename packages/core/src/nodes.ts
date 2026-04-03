@@ -7,6 +7,9 @@ import type {
   TextProps,
   ImageProps,
   LinkProps,
+  TableProps,
+  TableRowProps,
+  TableCellProps,
 } from './types'
 
 export function Document(
@@ -47,4 +50,42 @@ export function Link(
   children: PDFChild[] = [],
 ): PDFNode {
   return { type: 'LINK', props, children: children.flat() }
+}
+
+export function Table(
+  props: TableProps = {},
+  children: PDFChild[] = [],
+): PDFNode {
+  const mergedStyle = {
+    flexDirection: 'column' as const,
+    ...(props.style && !Array.isArray(props.style) ? props.style : {}),
+  }
+  return { type: 'VIEW', props: { ...props, style: mergedStyle }, children: children.flat() }
+}
+
+export function TableRow(
+  props: TableRowProps = {},
+  children: PDFChild[] = [],
+): PDFNode {
+  const mergedStyle = {
+    flexDirection: 'row' as const,
+    ...(props.style && !Array.isArray(props.style) ? props.style : {}),
+  }
+  return { type: 'VIEW', props: { ...props, style: mergedStyle }, children: children.flat() }
+}
+
+export function TableCell(
+  props: TableCellProps = {},
+  children: PDFChild | PDFChild[] = [],
+): PDFNode {
+  const colSpan = props.colSpan || 1
+  const mergedStyle = {
+    flex: colSpan,
+    padding: 6,
+    borderWidth: 0.5,
+    borderColor: '#d1d5db',
+    ...(props.style && !Array.isArray(props.style) ? props.style : {}),
+  }
+  const normalized = Array.isArray(children) ? children.flat() : [children]
+  return { type: 'VIEW', props: { ...props, style: mergedStyle }, children: normalized }
 }

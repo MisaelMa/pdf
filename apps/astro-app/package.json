@@ -7,11 +7,18 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@astrojs/node": "^9.2.0",
+    "@astrojs/react": "^5.0.2",
+    "@monaco-editor/react": "^4.7.0",
     "@pdfcraft/core": "workspace:*",
     "astro": "^5.7.0",
-    "@astrojs/node": "^9.2.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.0"
   }
 }

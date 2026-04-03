@@ -84,7 +84,7 @@ export default function App() {
       <div style={mainStyle}>
         <div style={editorPanelStyle}>
           <Editor
-            defaultLanguage="typescript"
+            defaultLanguage="typescriptreact"
             value={code}
             onChange={handleCodeChange}
             theme="vs-dark"

@@ -6,6 +6,9 @@ export {
   Text,
   Image,
   Link,
+  Table,
+  TableRow,
+  TableCell,
 } from './components'
 
 // Viewer, hook & download
@@ -43,4 +46,7 @@ export type {
   TextComponentProps,
   ImageComponentProps,
   LinkComponentProps,
+  TableComponentProps,
+  TableRowComponentProps,
+  TableCellComponentProps,
 } from './components'

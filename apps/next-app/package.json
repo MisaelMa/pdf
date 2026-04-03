@@ -7,11 +7,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@pdfcraft/core": "workspace:*",
     "@pdfcraft/react": "workspace:*",
     "next": "^15.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

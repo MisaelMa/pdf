@@ -1,4 +1,4 @@
-export { Document, Page, View, Text, Image, Link } from './nodes'
+export { Document, Page, View, Text, Image, Link, Table, TableRow, TableCell } from './nodes'
 export { StyleSheet, resolveStyle } from './stylesheet'
 export { Font } from './font'
 export { resolvePageSize } from './page-sizes'
@@ -26,4 +26,7 @@ export type {
   TextProps,
   ImageProps,
   LinkProps,
+  TableProps,
+  TableRowProps,
+  TableCellProps,
 } from './types'

@@ -119,6 +119,20 @@ export interface LinkProps {
   fixed?: boolean
 }
 
+export interface TableProps {
+  style?: PDFStyle | PDFStyle[]
+  wrap?: boolean
+}
+
+export interface TableRowProps {
+  style?: PDFStyle | PDFStyle[]
+}
+
+export interface TableCellProps {
+  style?: PDFStyle | PDFStyle[]
+  colSpan?: number
+}
+
 export type PDFNodeType = 'DOCUMENT' | 'PAGE' | 'VIEW' | 'TEXT' | 'IMAGE' | 'LINK'
 
 export interface PDFNode {

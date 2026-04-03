@@ -9,6 +9,9 @@ export {
   Text,
   Image,
   Link,
+  Table,
+  TableRow,
+  TableCell,
   StyleSheet,
   Font,
   renderToBuffer,
@@ -29,4 +32,7 @@ export type {
   TextProps,
   ImageProps,
   LinkProps,
+  TableProps,
+  TableRowProps,
+  TableCellProps,
 } from '@pdfcraft/core'

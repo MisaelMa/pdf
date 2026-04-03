@@ -77,3 +77,27 @@ export const PDFLink = pdfComponent('PDFLink', 'LINK', {
   fixed: { type: Boolean, default: false },
   ...styleProp,
 })
+
+function pdfTableComponent(
+  name: string,
+  hint: string,
+  propDefs: Record<string, any>,
+) {
+  const comp = pdfComponent(name, 'VIEW', propDefs)
+  ;(comp as any).__pdfTableHint = hint
+  return comp
+}
+
+export const PDFTable = pdfTableComponent('PDFTable', 'TABLE', {
+  wrap: { type: Boolean, default: true },
+  ...styleProp,
+})
+
+export const PDFTableRow = pdfTableComponent('PDFTableRow', 'TABLE_ROW', {
+  ...styleProp,
+})
+
+export const PDFTableCell = pdfTableComponent('PDFTableCell', 'TABLE_CELL', {
+  colSpan: { type: Number, default: 1 },
+  ...styleProp,
+})

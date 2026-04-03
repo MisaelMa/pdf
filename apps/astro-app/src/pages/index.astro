@@ -1,5 +1,5 @@
 ---
-// SSR page — the PDF is generated server-side via /api/pdf
+import Playground from '../components/Playground'
 ---
 <html lang="en">
 <head>
@@ -14,23 +14,57 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      padding: 16px;
-      gap: 12px;
     }
-    h2 { white-space: nowrap; }
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid #e5e7eb; background: #f8f9fa; padding: 0 16px; }
+    .tab { padding: 10px 20px; border: none; background: transparent; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab-active { color: #2563eb; border-bottom-color: #2563eb; }
+    .demo-view { display: flex; flex-direction: column; flex: 1; padding: 16px; gap: 12px; }
     .toolbar { display: flex; align-items: center; gap: 12px; }
-    iframe {
-      flex: 1;
-      border: none;
-      border-radius: 8px;
-    }
+    iframe { flex: 1; border: none; border-radius: 8px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <div class="toolbar">
-    <h2>Astro Demo</h2>
-    <span style="color: #666; font-size: 14px">PDF generated server-side with @pdfcraft/core</span>
+  <div class="tab-bar">
+    <button class="tab tab-active" id="tab-demo" onclick="switchTab('demo')">Demo</button>
+    <button class="tab" id="tab-playground" onclick="switchTab('playground')">Playground</button>
   </div>
-  <iframe src="/api/pdf" title="PDF Viewer" />
+
+  <div id="demo-panel" class="demo-view">
+    <div class="toolbar">
+      <h2>Astro Demo</h2>
+      <span style="color: #666; font-size: 14px">PDF generated server-side with @pdfcraft/core</span>
+    </div>
+    <iframe src="/api/pdf" title="PDF Viewer" />
+  </div>
+
+  <div id="playground-panel" class="hidden" style="flex: 1; display: flex; flex-direction: column;">
+    <Playground client:only="react" />
+  </div>
+
+  <script is:inline>
+    function switchTab(name) {
+      const demoPanel = document.getElementById('demo-panel')
+      const playgroundPanel = document.getElementById('playground-panel')
+      const tabDemo = document.getElementById('tab-demo')
+      const tabPlayground = document.getElementById('tab-playground')
+
+      if (name === 'demo') {
+        demoPanel.classList.remove('hidden')
+        demoPanel.style.display = 'flex'
+        playgroundPanel.classList.add('hidden')
+        playgroundPanel.style.display = 'none'
+        tabDemo.classList.add('tab-active')
+        tabPlayground.classList.remove('tab-active')
+      } else {
+        demoPanel.classList.add('hidden')
+        demoPanel.style.display = 'none'
+        playgroundPanel.classList.remove('hidden')
+        playgroundPanel.style.display = 'flex'
+        tabDemo.classList.remove('tab-active')
+        tabPlayground.classList.add('tab-active')
+      }
+    }
+  </script>
 </body>
 </html>

@@ -1,92 +1,69 @@
-import PDFDocument from 'pdfkit'
+import {
+  PDFDocument, PDFName, PDFString, PDFArray, rgb, type PDFPage, type PDFFont, type PDFImage,
+  pushGraphicsState, popGraphicsState, moveTo, lineTo, appendBezierCurve,
+  closePath, fill, stroke, fillAndStroke, setLineWidth, setFillingColor, setStrokingColor,
+} from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import type { PDFNode, PDFChild, LayoutNode, ResolvedStyle } from './types'
 import { resolvePageSize } from './page-sizes'
 import { resolveStyle } from './stylesheet'
-import { resolveFontName, registerFontsOnDocument } from './font'
+import { resolveFontName, collectFontNames, embedAllFonts, getFontFromMap, Font } from './font'
 import { fetchImage } from './image-loader'
-import { initYoga, buildYogaTree } from './yoga-layout'
+import { initYoga, buildYogaTree, wrapText } from './yoga-layout'
 
 export async function renderToBuffer(documentNode: PDFNode): Promise<Uint8Array> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const doc = createPDFDocument(documentNode)
-      const chunks: any[] = []
+  const pdfDoc = await PDFDocument.create()
+  pdfDoc.registerFontkit(fontkit)
 
-      doc.on('data', (chunk: any) => chunks.push(chunk))
-      doc.on('end', () => {
-        const buffer = Buffer.concat(chunks)
-        resolve(new Uint8Array(buffer))
-      })
-      doc.on('error', reject)
+  const props = documentNode.props
+  if (props.title) pdfDoc.setTitle(props.title)
+  if (props.author) pdfDoc.setAuthor(props.author)
+  if (props.subject) pdfDoc.setSubject(props.subject)
+  if (props.keywords) pdfDoc.setKeywords(typeof props.keywords === 'string' ? [props.keywords] : props.keywords)
+  if (props.creator) pdfDoc.setCreator(props.creator)
+  if (props.producer) pdfDoc.setProducer(props.producer)
+  if (props.language) pdfDoc.setLanguage(props.language)
 
-      await renderDocument(doc, documentNode)
-      doc.end()
-    } catch (err) {
-      reject(err)
+  await Font.load()
+  const fontNames = collectFontNames(documentNode, resolveStyle)
+  const fontMap = await embedAllFonts(pdfDoc, fontNames)
+  const yg = await initYoga()
+
+  for (const child of documentNode.children) {
+    if (typeof child === 'string') continue
+    if (child.type === 'PAGE') {
+      await renderPage(pdfDoc, child, yg, fontMap)
     }
-  })
+  }
+
+  return pdfDoc.save()
 }
 
 export async function renderToBlob(documentNode: PDFNode): Promise<Blob> {
-  const buffer = await renderToBuffer(documentNode)
-  return new Blob([buffer.buffer as ArrayBuffer], { type: 'application/pdf' })
+  const bytes = await renderToBuffer(documentNode)
+  return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' })
 }
 
-export async function renderToStream(documentNode: PDFNode): Promise<any> {
-  const doc = createPDFDocument(documentNode)
-  await renderDocument(doc, documentNode)
-  doc.end()
-  return doc
+export async function renderToStream(documentNode: PDFNode): Promise<ReadableStream<Uint8Array>> {
+  const bytes = await renderToBuffer(documentNode)
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(bytes))
+      controller.close()
+    },
+  })
 }
 
-export async function renderToFile(
-  documentNode: PDFNode,
-  filePath: string,
-): Promise<void> {
+export async function renderToFile(documentNode: PDFNode, filePath: string): Promise<void> {
   const buffer = await renderToBuffer(documentNode)
   const mod = 'fs/promises'
   const { writeFile } = await (Function('m', 'return import(m)')(mod))
   await writeFile(filePath, buffer)
 }
 
-function createPDFDocument(documentNode: PDFNode): PDFKit.PDFDocument {
-  const props = documentNode.props
+// ── Image handling ──────────────────────────────────────────────────
 
-  const info: Record<string, string> = {
-    Creator: props.creator || 'pdfcraft',
-    Producer: props.producer || 'pdfcraft',
-  }
-  if (props.title) info.Title = props.title
-  if (props.author) info.Author = props.author
-  if (props.subject) info.Subject = props.subject
-  if (props.keywords) info.Keywords = props.keywords
-
-  const options: Record<string, any> = {
-    autoFirstPage: false,
-    bufferPages: true,
-    info,
-  }
-  if (props.language) options.lang = props.language
-
-  const doc = new PDFDocument(options)
-  registerFontsOnDocument(doc)
-  return doc
-}
-
-async function renderDocument(doc: PDFKit.PDFDocument, documentNode: PDFNode): Promise<void> {
-  const yg = await initYoga()
-
-  for (const child of documentNode.children) {
-    if (typeof child === 'string') continue
-    if (child.type === 'PAGE') {
-      await renderPage(doc, child, yg)
-    }
-  }
-}
-
-// ── Image preloading ────────────────────────────────────────────────
-
-const loadedImages = new Map<string, Buffer>()
+const loadedImages = new Map<string, Uint8Array>()
 
 async function preloadImages(node: PDFNode): Promise<void> {
   const promises: Promise<void>[] = []
@@ -98,7 +75,7 @@ async function preloadImages(node: PDFNode): Promise<void> {
       if (typeof src === 'string' && !loadedImages.has(src)) {
         promises.push(
           fetchImage(src)
-            .then((buf) => { loadedImages.set(src, Buffer.from(buf)) })
+            .then((buf) => { loadedImages.set(src, new Uint8Array(buf)) })
             .catch(() => {}),
         )
       }
@@ -110,43 +87,93 @@ async function preloadImages(node: PDFNode): Promise<void> {
   await Promise.all(promises)
 }
 
+function detectImageType(data: Uint8Array): 'png' | 'jpg' | null {
+  if (data[0] === 0x89 && data[1] === 0x50 && data[2] === 0x4E && data[3] === 0x47) return 'png'
+  if (data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF) return 'jpg'
+  return null
+}
+
+const embeddedImages = new Map<string, PDFImage>()
+
+async function embedImage(pdfDoc: PDFDocument, src: string | ArrayBuffer | Uint8Array): Promise<PDFImage | null> {
+  const key = typeof src === 'string' ? src : ''
+  if (key && embeddedImages.has(key)) return embeddedImages.get(key)!
+
+  let data: Uint8Array
+  if (typeof src === 'string') {
+    const cached = loadedImages.get(src)
+    if (!cached) return null
+    data = cached
+  } else if (src instanceof ArrayBuffer) {
+    data = new Uint8Array(src)
+  } else {
+    data = src
+  }
+
+  let image: PDFImage | null = null
+  const type = detectImageType(data)
+  try {
+    if (type === 'png') image = await pdfDoc.embedPng(data)
+    else if (type === 'jpg') image = await pdfDoc.embedJpg(data)
+    else {
+      try { image = await pdfDoc.embedPng(data) } catch { image = await pdfDoc.embedJpg(data) }
+    }
+  } catch {
+    return null
+  }
+
+  if (key && image) embeddedImages.set(key, image)
+  return image
+}
+
+// ── Color parsing ───────────────────────────────────────────────────
+
+function parseColor(color: string) {
+  if (color.startsWith('#')) {
+    const hex = color.length === 4
+      ? color[1] + color[1] + color[2] + color[2] + color[3] + color[3]
+      : color.slice(1)
+    const r = parseInt(hex.slice(0, 2), 16) / 255
+    const g = parseInt(hex.slice(2, 4), 16) / 255
+    const b = parseInt(hex.slice(4, 6), 16) / 255
+    return rgb(r, g, b)
+  }
+  return rgb(0, 0, 0)
+}
+
 // ── Page rendering with Yoga layout + wrap ─────────────────────────
 
 async function renderPage(
-  doc: PDFKit.PDFDocument,
+  pdfDoc: PDFDocument,
   pageNode: PDFNode,
   yg: any,
+  fontMap: Map<string, PDFFont>,
 ): Promise<void> {
   const size = resolvePageSize(pageNode.props.size, pageNode.props.orientation)
   const pageStyle = resolveStyle(pageNode.props.style)
   const wrapEnabled = pageNode.props.wrap !== false
 
   await preloadImages(pageNode)
-
-  const layouts = buildYogaTree(yg, doc, pageNode, size.width, size.height)
+  const layouts = buildYogaTree(yg, fontMap, pageNode, size.width, size.height)
 
   if (!wrapEnabled) {
-    addNewPage(doc, size, pageStyle)
-    for (const layout of layouts) renderLayoutNode(doc, layout)
+    const page = addNewPage(pdfDoc, size, pageStyle)
+    for (const layout of layouts) await renderLayoutNode(pdfDoc, page, layout, fontMap, size.height)
     return
   }
 
-  const pageContentHeight = size.height
   const flatNodes = flattenForWrapping(layouts)
 
   if (flatNodes.length === 0) {
-    addNewPage(doc, size, pageStyle)
+    addNewPage(pdfDoc, size, pageStyle)
     return
   }
 
-  const totalContentHeight = flatNodes.reduce(
-    (max, n) => Math.max(max, n.y + n.height),
-    0,
-  )
+  const totalContentHeight = flatNodes.reduce((max, n) => Math.max(max, n.y + n.height), 0)
 
-  if (totalContentHeight <= pageContentHeight) {
-    addNewPage(doc, size, pageStyle)
-    for (const layout of layouts) renderLayoutNode(doc, layout)
+  if (totalContentHeight <= size.height) {
+    const page = addNewPage(pdfDoc, size, pageStyle)
+    for (const layout of layouts) await renderLayoutNode(pdfDoc, page, layout, fontMap, size.height)
     return
   }
 
@@ -154,189 +181,257 @@ async function renderPage(
   let pageIndex = 0
 
   while (pageStartY < totalContentHeight) {
-    const pageEndY = pageStartY + pageContentHeight
-    addNewPage(doc, size, pageStyle)
+    const pageEndY = pageStartY + size.height
+    const page = addNewPage(pdfDoc, size, pageStyle)
 
     for (const node of flatNodes) {
       if (node.node.type === 'PAGE') continue
-      const nodeBottom = node.y + node.height
-      const nodeTop = node.y
-
-      if (nodeBottom <= pageStartY || nodeTop >= pageEndY) continue
-
-      const offsetNode = {
-        ...node,
-        y: node.y - pageStartY,
-        children: [],
-      }
-      renderLayoutNode(doc, offsetNode)
+      if (node.y + node.height <= pageStartY || node.y >= pageEndY) continue
+      const offsetNode = { ...node, y: node.y - pageStartY, children: [] }
+      await renderLayoutNode(pdfDoc, page, offsetNode, fontMap, size.height)
     }
 
     pageStartY = pageEndY
-    pageIndex++
-    if (pageIndex > 100) break
+    if (++pageIndex > 100) break
   }
 }
 
 function addNewPage(
-  doc: PDFKit.PDFDocument,
+  pdfDoc: PDFDocument,
   size: { width: number; height: number },
   pageStyle: ResolvedStyle,
-): void {
-  doc.addPage({ size: [size.width, size.height], margin: 0 })
-
+): PDFPage {
+  const page = pdfDoc.addPage([size.width, size.height])
   if (pageStyle.backgroundColor) {
-    doc.save()
-    doc.rect(0, 0, size.width, size.height).fill(pageStyle.backgroundColor)
-    doc.restore()
+    page.drawRectangle({ x: 0, y: 0, width: size.width, height: size.height, color: parseColor(pageStyle.backgroundColor) })
   }
+  return page
 }
 
-/**
- * Flatten the layout tree into leaf/renderable nodes for page splitting.
- * We keep nodes that have visual output (text, image, background, border)
- * and skip pure container nodes whose children handle rendering.
- */
 function flattenForWrapping(layouts: LayoutNode[]): LayoutNode[] {
   const result: LayoutNode[] = []
-
   function walk(layout: LayoutNode) {
-    const hasVisual =
-      layout.textContent ||
-      layout.node.type === 'IMAGE' ||
-      layout.style.backgroundColor ||
-      layout.style.borderWidth > 0
-
-    if (hasVisual) {
-      result.push(layout)
-    }
-
-    if (layout.node.type === 'LINK' && layout.node.props.src) {
-      if (!hasVisual) result.push(layout)
-    }
-
+    const hasVisual = layout.textContent || layout.node.type === 'IMAGE' || layout.style.backgroundColor || layout.style.borderWidth > 0
+    if (hasVisual) result.push(layout)
+    if (layout.node.type === 'LINK' && layout.node.props.src && !hasVisual) result.push(layout)
     for (const child of layout.children) walk(child)
   }
-
   for (const layout of layouts) walk(layout)
   return result
 }
 
-// ── Render pass ──────────────────────────────────────────────────────
+// ── Render pass ─────────────────────────────────────────────────────
 
-function renderLayoutNode(
-  doc: PDFKit.PDFDocument,
+async function renderLayoutNode(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
   layout: LayoutNode,
-): void {
+  fontMap: Map<string, PDFFont>,
+  pageHeight: number,
+): Promise<void> {
   const { x, y, width, height, style, node, children, textContent } = layout
 
   if (node.type === 'PAGE') {
-    for (const child of children) renderLayoutNode(doc, child)
+    for (const child of children) await renderLayoutNode(pdfDoc, page, child, fontMap, pageHeight)
     return
   }
 
-  if (style.backgroundColor) {
-    doc.save()
-    if (style.borderRadius > 0) {
-      doc.roundedRect(x, y, width, height, style.borderRadius)
-        .fill(style.backgroundColor)
-    } else {
-      doc.rect(x, y, width, height).fill(style.backgroundColor)
-    }
-    doc.restore()
-  }
+  const pdfY = pageHeight - y - height
 
-  if (style.borderWidth > 0) {
-    doc.save()
-    doc.lineWidth(style.borderWidth).strokeColor(style.borderColor)
-    if (style.borderStyle === 'dashed') doc.dash(5, { space: 3 })
-    if (style.borderStyle === 'dotted') doc.dash(1, { space: 2 })
+  if (style.backgroundColor || style.borderWidth > 0) {
+    const bgColor = style.backgroundColor ? parseColor(style.backgroundColor) : undefined
+    const bdColor = style.borderWidth > 0 ? parseColor(style.borderColor) : undefined
 
     if (style.borderRadius > 0) {
-      doc.roundedRect(x, y, width, height, style.borderRadius).stroke()
+      drawRoundedRect(page, x, pdfY, width, height, style.borderRadius, bgColor, bdColor, style.borderWidth, style.borderStyle)
     } else {
-      doc.rect(x, y, width, height).stroke()
+      if (bgColor) {
+        page.drawRectangle({ x, y: pdfY, width, height, color: bgColor, borderWidth: 0 })
+      }
+      if (style.borderWidth > 0 && bdColor) {
+        page.drawRectangle({ x, y: pdfY, width, height, borderColor: bdColor, borderWidth: style.borderWidth })
+      }
     }
-    doc.restore()
   }
 
-  if (node.type === 'TEXT' && textContent) {
-    renderText(doc, layout)
-  }
+  if (node.type === 'TEXT' && textContent) renderText(page, layout, fontMap, pageHeight)
 
   if (node.type === 'LINK') {
-    if (textContent) renderText(doc, layout)
-    if (node.props.src) doc.link(x, y, width, height, node.props.src)
+    if (textContent) renderText(page, layout, fontMap, pageHeight)
+    if (node.props.src) addLinkAnnotation(pdfDoc, page, x, pdfY, width, height, node.props.src)
   }
 
   if (node.type === 'IMAGE' && node.props.src) {
-    renderImage(doc, layout)
+    await renderImage(pdfDoc, page, layout, pageHeight)
   }
 
-  for (const child of children) renderLayoutNode(doc, child)
+  for (const child of children) await renderLayoutNode(pdfDoc, page, child, fontMap, pageHeight)
 }
 
-function renderText(doc: PDFKit.PDFDocument, layout: LayoutNode): void {
+function renderText(
+  page: PDFPage,
+  layout: LayoutNode,
+  fontMap: Map<string, PDFFont>,
+  pageHeight: number,
+): void {
   const { x, y, width, style, textContent } = layout
   if (!textContent) return
 
-  doc.save()
-  if (style.opacity < 1) doc.opacity(style.opacity)
+  const fontName = resolveFontName(style)
+  const font = getFontFromMap(fontMap, fontName)
+  const fontSize = style.fontSize
+  const lineGap = style.lineHeight ? (style.lineHeight - 1) * fontSize : 0
 
-  doc.fontSize(style.fontSize)
-  doc.fillColor(style.color)
-  doc.font(resolveFontName(style))
+  let color = parseColor(style.color)
+  if (layout.node.type === 'LINK' && style.color === '#000000') color = parseColor('#0000EE')
 
   const cX = x + style.paddingLeft
-  const cY = y + style.paddingTop
   const cW = width - style.paddingLeft - style.paddingRight
+  const cTopY = y + style.paddingTop
 
-  const opts: any = { width: Math.max(cW, 0), align: style.textAlign }
-  if (style.lineHeight) opts.lineGap = (style.lineHeight - 1) * style.fontSize
-  if (style.letterSpacing) opts.characterSpacing = style.letterSpacing
-  if (style.textDecoration === 'underline') opts.underline = true
-  if (style.textDecoration === 'line-through') opts.strike = true
+  const lines = wrapText(font, textContent, fontSize, Math.max(cW, 0))
+  const baseLineHeight = font.heightAtSize(fontSize)
+  const effectiveLineHeight = baseLineHeight + lineGap
 
-  if (layout.node.type === 'LINK') {
-    opts.link = layout.node.props.src
-    opts.underline = opts.underline ?? true
-    if (style.color === '#000000') doc.fillColor('#0000EE')
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const lineTopY = cTopY + i * effectiveLineHeight
+
+    let lineX = cX
+    if (style.textAlign === 'center') {
+      lineX = cX + (cW - font.widthOfTextAtSize(line, fontSize)) / 2
+    } else if (style.textAlign === 'right') {
+      lineX = cX + cW - font.widthOfTextAtSize(line, fontSize)
+    }
+
+    const pdfBaselineY = pageHeight - lineTopY - font.heightAtSize(fontSize, { descender: false })
+
+    page.drawText(line, { x: lineX, y: pdfBaselineY, size: fontSize, font, color, opacity: style.opacity })
   }
-
-  doc.text(textContent, cX, cY, opts)
-  doc.restore()
 }
 
-function renderImage(doc: PDFKit.PDFDocument, layout: LayoutNode): void {
+function addLinkAnnotation(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  uri: string,
+): void {
+  const context = pdfDoc.context
+  const annot = context.register(
+    context.obj({
+      Type: 'Annot',
+      Subtype: 'Link',
+      Rect: [x, y, x + w, y + h],
+      Border: [0, 0, 0],
+      A: { Type: 'Action', S: 'URI', URI: PDFString.of(uri) },
+    }),
+  )
+
+  const existing = page.node.lookup(PDFName.of('Annots')) as PDFArray | undefined
+  if (existing instanceof PDFArray) {
+    existing.push(annot)
+  } else {
+    page.node.set(PDFName.of('Annots'), context.obj([annot]))
+  }
+}
+
+async function renderImage(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  layout: LayoutNode,
+  pageHeight: number,
+): Promise<void> {
   const { x, y, width, height, style, node } = layout
   const cX = x + style.paddingLeft
   const cY = y + style.paddingTop
   const cW = width - style.paddingLeft - style.paddingRight
   const cH = height - style.paddingTop - style.paddingBottom
 
-  doc.save()
-  try {
-    let imgSrc: any = node.props.src
-    if (typeof imgSrc === 'string' && loadedImages.has(imgSrc)) {
-      imgSrc = loadedImages.get(imgSrc)
-    }
+  const image = await embedImage(pdfDoc, node.props.src)
+  if (!image) return
 
-    const imgOpts: any = { width: cW, height: cH }
-    if (style.objectFit === 'contain') {
-      imgOpts.fit = [cW, cH]
-      imgOpts.align = 'center'
-      imgOpts.valign = 'center'
-      delete imgOpts.width
-      delete imgOpts.height
-    } else if (style.objectFit === 'cover') {
-      imgOpts.cover = [cW, cH]
-      delete imgOpts.width
-      delete imgOpts.height
-    }
+  let drawW = cW, drawH = cH, drawX = cX, drawY = cY
 
-    doc.image(imgSrc, cX, cY, imgOpts)
-  } catch {
-    // skip unrenderable images
+  if (style.objectFit === 'contain') {
+    const imgAspect = image.width / image.height
+    const boxAspect = cW / cH
+    if (imgAspect > boxAspect) {
+      drawW = cW; drawH = cW / imgAspect; drawY = cY + (cH - drawH) / 2
+    } else {
+      drawH = cH; drawW = cH * imgAspect; drawX = cX + (cW - drawW) / 2
+    }
+  } else if (style.objectFit === 'cover') {
+    const imgAspect = image.width / image.height
+    const boxAspect = cW / cH
+    if (imgAspect > boxAspect) {
+      drawH = cH; drawW = cH * imgAspect; drawX = cX + (cW - drawW) / 2
+    } else {
+      drawW = cW; drawH = cW / imgAspect; drawY = cY + (cH - drawH) / 2
+    }
   }
-  doc.restore()
+
+  page.drawImage(image, { x: drawX, y: pageHeight - drawY - drawH, width: drawW, height: drawH, opacity: style.opacity })
+}
+
+// ── Rounded rectangle with bezier curves ────────────────────────────
+
+const K = 0.5522847498 // cubic bezier approximation for quarter circle
+
+function drawRoundedRect(
+  page: PDFPage,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number,
+  fillRgb?: ReturnType<typeof rgb>,
+  strokeRgb?: ReturnType<typeof rgb>,
+  strokeWidth?: number,
+  strokeStyle?: string,
+): void {
+  const r = Math.min(radius, w / 2, h / 2)
+  const kr = r * K
+
+  const pathOps = [
+    moveTo(x + r, y),
+    lineTo(x + w - r, y),
+    appendBezierCurve(x + w - r + kr, y, x + w, y + r - kr, x + w, y + r),
+    lineTo(x + w, y + h - r),
+    appendBezierCurve(x + w, y + h - r + kr, x + w - r + kr, y + h, x + w - r, y + h),
+    lineTo(x + r, y + h),
+    appendBezierCurve(x + r - kr, y + h, x, y + h - r + kr, x, y + h - r),
+    lineTo(x, y + r),
+    appendBezierCurve(x, y + r - kr, x + r - kr, y, x + r, y),
+    closePath(),
+  ]
+
+  page.pushOperators(pushGraphicsState())
+
+  if (fillRgb && strokeRgb && strokeWidth) {
+    page.pushOperators(
+      setLineWidth(strokeWidth),
+      setFillingColor(fillRgb),
+      setStrokingColor(strokeRgb),
+      ...pathOps,
+      fillAndStroke(),
+    )
+  } else if (fillRgb) {
+    page.pushOperators(
+      setFillingColor(fillRgb),
+      ...pathOps,
+      fill(),
+    )
+  } else if (strokeRgb && strokeWidth) {
+    page.pushOperators(
+      setLineWidth(strokeWidth),
+      setStrokingColor(strokeRgb),
+      ...pathOps,
+      stroke(),
+    )
+  }
+
+  page.pushOperators(popGraphicsState())
 }

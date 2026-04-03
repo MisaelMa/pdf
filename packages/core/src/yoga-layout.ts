@@ -10,9 +10,10 @@ import {
   PositionType,
   Wrap,
 } from 'yoga-layout/load'
+import type { PDFFont } from 'pdf-lib'
 import type { PDFNode, PDFChild, PDFStyle, LayoutNode, ResolvedStyle } from './types'
 import { resolveStyle } from './stylesheet'
-import { resolveFontName } from './font'
+import { resolveFontName, getFontFromMap } from './font'
 
 let yoga: Yoga | null = null
 
@@ -24,23 +25,19 @@ export async function initYoga(): Promise<Yoga> {
 }
 
 interface TextMeasureContext {
-  doc: PDFKit.PDFDocument
+  fontMap: Map<string, PDFFont>
   text: string
   style: ResolvedStyle
 }
 
-/**
- * Build a Yoga layout tree from a PDFNode tree, compute layout,
- * and return a flat list of LayoutNodes with absolute positions.
- */
 export function buildYogaTree(
   yg: Yoga,
-  doc: PDFKit.PDFDocument,
+  fontMap: Map<string, PDFFont>,
   node: PDFNode,
   parentWidth: number,
   parentHeight: number,
 ): LayoutNode[] {
-  const rootYogaNode = createYogaNode(yg, doc, node)
+  const rootYogaNode = createYogaNode(yg, fontMap, node)
   rootYogaNode.calculateLayout(parentWidth, parentHeight)
 
   const layouts = collectLayouts(rootYogaNode, node, 0, 0)
@@ -50,7 +47,7 @@ export function buildYogaTree(
 
 function createYogaNode(
   yg: Yoga,
-  doc: PDFKit.PDFDocument,
+  fontMap: Map<string, PDFFont>,
   pdfNode: PDFNode,
 ): YogaNode {
   const ygNode = yg.Node.create()
@@ -60,39 +57,24 @@ function createYogaNode(
 
   if (pdfNode.type === 'TEXT') {
     const text = extractText(pdfNode.children)
-    const measureCtx: TextMeasureContext = { doc, text, style }
+    const measureCtx: TextMeasureContext = { fontMap, text, style }
 
-    ygNode.setMeasureFunc((width, widthMode, _height, _heightMode) => {
-      const { doc: d, text: t, style: s } = measureCtx
+    ygNode.setMeasureFunc((width, widthMode) => {
+      const { fontMap: fm, text: t, style: s } = measureCtx
       if (!t) return { width: 0, height: 0 }
 
-      const prevFontSize = (d as any)._fontSize
-      const prevFont = (d as any)._font
+      const fontName = resolveFontName(s)
+      const font = getFontFromMap(fm, fontName)
+      const maxW = widthMode === 0 ? Infinity : width
+      const lineGap = s.lineHeight ? (s.lineHeight - 1) * s.fontSize : 0
 
-      d.fontSize(s.fontSize)
-      d.font(resolveFontName(s))
-
-      const opts: any = { align: s.textAlign }
-      if (s.lineHeight) {
-        opts.lineGap = (s.lineHeight - 1) * s.fontSize
-      }
-
-      const maxW = widthMode === 0 /* Undefined */ ? Infinity : width
-      opts.width = Math.max(maxW, 0)
-
-      const measuredHeight = d.heightOfString(t || ' ', opts)
-      const measuredWidth = Math.min(d.widthOfString(t || ' ', opts), maxW)
-
-      if (prevFontSize != null) d.fontSize(prevFontSize)
-      if (prevFont != null) try { d.font(prevFont.name || prevFont.filename || 'Helvetica') } catch {}
-
-      return { width: measuredWidth, height: measuredHeight }
+      const { width: mw, height: mh } = measureMultilineText(font, t, s.fontSize, maxW, lineGap)
+      return { width: mw, height: mh }
     })
     return ygNode
   }
 
   if (pdfNode.type === 'IMAGE') {
-    // Images are leaf nodes — no children, fixed or aspect-ratio-derived size
     return ygNode
   }
 
@@ -101,41 +83,93 @@ function createYogaNode(
   )
 
   for (let i = 0; i < childNodes.length; i++) {
-    const childYg = createYogaNode(yg, doc, childNodes[i])
+    const childYg = createYogaNode(yg, fontMap, childNodes[i])
     ygNode.insertChild(childYg, i)
   }
 
   return ygNode
 }
 
+/**
+ * Measure multiline text by word-wrapping to fit within maxWidth.
+ */
+export function measureMultilineText(
+  font: PDFFont,
+  text: string,
+  fontSize: number,
+  maxWidth: number,
+  lineGap: number = 0,
+): { width: number; height: number } {
+  const baseLineHeight = font.heightAtSize(fontSize)
+  const effectiveLineHeight = baseLineHeight + lineGap
+
+  if (!text) return { width: 0, height: effectiveLineHeight }
+
+  const lines = wrapText(font, text, fontSize, maxWidth)
+  const measuredWidth = Math.min(
+    Math.max(...lines.map((line) => font.widthOfTextAtSize(line, fontSize))),
+    maxWidth === Infinity ? Infinity : maxWidth,
+  )
+  const measuredHeight = lines.length * effectiveLineHeight
+
+  return { width: measuredWidth, height: measuredHeight }
+}
+
+/**
+ * Split text into lines that fit within maxWidth.
+ */
+export function wrapText(
+  font: PDFFont,
+  text: string,
+  fontSize: number,
+  maxWidth: number,
+): string[] {
+  if (!text) return ['']
+  if (maxWidth === Infinity || maxWidth <= 0) return [text]
+
+  const words = text.split(/\s+/)
+  const lines: string[] = []
+  let currentLine = ''
+
+  for (const word of words) {
+    if (!word) continue
+    const testLine = currentLine ? `${currentLine} ${word}` : word
+    const testWidth = font.widthOfTextAtSize(testLine, fontSize)
+
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine)
+      currentLine = word
+    } else {
+      currentLine = testLine
+    }
+  }
+
+  if (currentLine) lines.push(currentLine)
+  if (lines.length === 0) lines.push('')
+
+  return lines
+}
+
 function applyStyle(ygNode: YogaNode, style: ResolvedStyle, pdfNode: PDFNode): void {
-  // Dimensions
   if (style.width != null) ygNode.setWidth(style.width)
   if (style.height != null) ygNode.setHeight(style.height)
 
-  // Margins
   if (style.marginTop) ygNode.setMargin(Edge.Top, style.marginTop)
   if (style.marginRight) ygNode.setMargin(Edge.Right, style.marginRight)
   if (style.marginBottom) ygNode.setMargin(Edge.Bottom, style.marginBottom)
   if (style.marginLeft) ygNode.setMargin(Edge.Left, style.marginLeft)
 
-  // Padding
   if (style.paddingTop) ygNode.setPadding(Edge.Top, style.paddingTop)
   if (style.paddingRight) ygNode.setPadding(Edge.Right, style.paddingRight)
   if (style.paddingBottom) ygNode.setPadding(Edge.Bottom, style.paddingBottom)
   if (style.paddingLeft) ygNode.setPadding(Edge.Left, style.paddingLeft)
 
-  // Border (used in box model calculations)
-  if (style.borderWidth) {
-    ygNode.setBorder(Edge.All, style.borderWidth)
-  }
+  if (style.borderWidth) ygNode.setBorder(Edge.All, style.borderWidth)
 
-  // Flex properties
   const fd = style.flexDirection
   if (fd === 'row') ygNode.setFlexDirection(FlexDirection.Row)
   else ygNode.setFlexDirection(FlexDirection.Column)
 
-  // justifyContent
   const jc = (pdfNode.props.style as PDFStyle)?.justifyContent
   if (jc) {
     const map: Record<string, Justify> = {
@@ -148,7 +182,6 @@ function applyStyle(ygNode: YogaNode, style: ResolvedStyle, pdfNode: PDFNode): v
     if (map[jc]) ygNode.setJustifyContent(map[jc])
   }
 
-  // alignItems
   const ai = (pdfNode.props.style as PDFStyle)?.alignItems
   if (ai) {
     const map: Record<string, Align> = {
@@ -160,7 +193,6 @@ function applyStyle(ygNode: YogaNode, style: ResolvedStyle, pdfNode: PDFNode): v
     if (map[ai]) ygNode.setAlignItems(map[ai])
   }
 
-  // alignSelf
   const as_ = (pdfNode.props.style as PDFStyle)?.alignSelf
   if (as_ && as_ !== 'auto') {
     const map: Record<string, Align> = {
@@ -172,7 +204,6 @@ function applyStyle(ygNode: YogaNode, style: ResolvedStyle, pdfNode: PDFNode): v
     if (map[as_]) ygNode.setAlignSelf(map[as_])
   }
 
-  // flex, flexGrow, flexShrink, flexBasis
   const rawStyle = pdfNode.props.style as PDFStyle | undefined
   if (rawStyle?.flex != null) ygNode.setFlex(rawStyle.flex)
   if (rawStyle?.flexGrow != null) ygNode.setFlexGrow(rawStyle.flexGrow)
@@ -183,24 +214,18 @@ function applyStyle(ygNode: YogaNode, style: ResolvedStyle, pdfNode: PDFNode): v
     else if (typeof fb === 'string') ygNode.setFlexBasis(fb as any)
   }
 
-  // flexWrap
   if (rawStyle?.flexWrap === 'wrap') ygNode.setFlexWrap(Wrap.Wrap)
 
-  // Gap
   if (style.gap > 0) ygNode.setGap(Gutter.All, style.gap)
   if (rawStyle?.rowGap != null) ygNode.setGap(Gutter.Row, rawStyle.rowGap)
   if (rawStyle?.columnGap != null) ygNode.setGap(Gutter.Column, rawStyle.columnGap)
 
-  // Position
-  if (style.position === 'absolute') {
-    ygNode.setPositionType(PositionType.Absolute)
-  }
+  if (style.position === 'absolute') ygNode.setPositionType(PositionType.Absolute)
   if (style.top != null) ygNode.setPosition(Edge.Top, style.top)
   if (style.left != null) ygNode.setPosition(Edge.Left, style.left)
   if (style.right != null) ygNode.setPosition(Edge.Right, style.right)
   if (style.bottom != null) ygNode.setPosition(Edge.Bottom, style.bottom)
 
-  // minHeight / maxHeight
   if (rawStyle?.minHeight != null) ygNode.setMinHeight(rawStyle.minHeight as number)
   if (rawStyle?.maxHeight != null) ygNode.setMaxHeight(rawStyle.maxHeight as number)
 }
@@ -218,10 +243,6 @@ function collectLayouts(
   const height = layout.height
 
   const style = resolveStyle(pdfNode.props.style)
-
-  const childNodes = pdfNode.children.filter(
-    (c): c is PDFNode => typeof c !== 'string',
-  )
 
   let textContent: string | undefined
   if (pdfNode.type === 'TEXT' || (pdfNode.type === 'LINK' && hasTextChildren(pdfNode))) {
@@ -246,18 +267,7 @@ function collectLayouts(
     }
   }
 
-  return [
-    {
-      node: pdfNode,
-      x,
-      y,
-      width,
-      height,
-      style,
-      children: childLayouts,
-      textContent,
-    },
-  ]
+  return [{ node: pdfNode, x, y, width, height, style, children: childLayouts, textContent }]
 }
 
 function hasTextChildren(node: PDFNode): boolean {
@@ -270,9 +280,7 @@ function extractText(children: PDFChild[]): string {
   return children
     .map((child) => {
       if (typeof child === 'string') return child
-      if (child.type === 'TEXT' || child.type === 'LINK') {
-        return extractText(child.children)
-      }
+      if (child.type === 'TEXT' || child.type === 'LINK') return extractText(child.children)
       return ''
     })
     .join('')

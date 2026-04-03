@@ -1,4 +1,3 @@
-import './polyfills'
 import App from './App.svelte'
 import { mount } from 'svelte'
 

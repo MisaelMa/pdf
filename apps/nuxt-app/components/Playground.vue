@@ -137,9 +137,7 @@ function compileAndRun(code: string): { tree: PDFNode | null; error: string | nu
     const fn = new Function(...Object.keys(scope), `"use strict";\n${transpiled}`)
     const result = fn(...Object.values(scope))
 
-    if (result && typeof result === 'object' && result.type === 'DOCUMENT') {
-      return { tree: result, error: null }
-    }
+    if (result && typeof result === 'object' && result.type === 'DOCUMENT') return { tree: result, error: null }
     return { tree: null, error: 'Code must return a <Document> or Document() node.' }
   } catch (err: any) {
     return { tree: null, error: err?.message || String(err) }
@@ -211,23 +209,15 @@ onBeforeUnmount(() => {
       </div>
       <div class="playground-actions">
         <span v-if="loading" class="playground-status">Generating...</span>
-        <button class="playground-btn" @click="generatePDF(editorInstance?.getValue() ?? '')">
-          Run
-        </button>
+        <button class="playground-btn" @click="generatePDF(editorInstance?.getValue() ?? '')">Run</button>
       </div>
     </header>
-
     <div class="playground-main">
       <div class="playground-editor" ref="editorContainer" />
       <div class="playground-preview">
-        <div v-if="error" class="playground-error">
-          <strong>Error</strong>
-          <pre>{{ error }}</pre>
-        </div>
+        <div v-if="error" class="playground-error"><strong>Error</strong><pre>{{ error }}</pre></div>
         <iframe v-else-if="pdfUrl" :src="pdfUrl" title="PDF Preview" class="playground-iframe" />
-        <div v-else class="playground-placeholder">
-          Write code to generate a PDF
-        </div>
+        <div v-else class="playground-placeholder">Write code to generate a PDF</div>
       </div>
     </div>
   </div>
@@ -237,11 +227,11 @@ onBeforeUnmount(() => {
 .playground { display: flex; flex-direction: column; height: 100vh; background: #0f172a; color: #e2e8f0; }
 .playground-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid #1e293b; background: #1e293b; }
 .playground-logo { display: flex; align-items: center; gap: 10px; }
-.playground-logo h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: #f8fafc; margin: 0; }
+.playground-logo h1 { font-size: 16px; font-weight: 700; color: #f8fafc; margin: 0; }
 .playground-tag { font-size: 10px; font-weight: 600; color: #34d399; background: #064e3b; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 .playground-actions { display: flex; align-items: center; gap: 10px; }
 .playground-status { font-size: 12px; color: #94a3b8; }
-.playground-btn { padding: 6px 16px; font-size: 13px; font-weight: 600; color: #fff; background: #10b981; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+.playground-btn { padding: 6px 16px; font-size: 13px; font-weight: 600; color: #fff; background: #10b981; border: none; border-radius: 6px; cursor: pointer; }
 .playground-btn:hover { background: #059669; }
 .playground-main { display: flex; flex: 1; overflow: hidden; }
 .playground-editor { flex: 1; overflow: hidden; }

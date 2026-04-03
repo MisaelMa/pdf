@@ -1,3 +1,4 @@
+import { StandardFonts, type PDFDocument, type PDFFont } from 'pdf-lib'
 import type { ResolvedStyle } from './types'
 
 interface FontSource {
@@ -9,7 +10,7 @@ interface FontSource {
 
 interface LoadedFont {
   family: string
-  src: Buffer | ArrayBuffer | Uint8Array | string
+  src: ArrayBuffer | Uint8Array | string
   fontWeight?: string | number
   fontStyle?: string
   loaded: boolean
@@ -17,6 +18,23 @@ interface LoadedFont {
 
 const registeredFonts = new Map<string, LoadedFont[]>()
 const fontLoadPromises = new Map<string, Promise<void>>()
+
+export const STANDARD_FONT_MAP: Record<string, StandardFonts> = {
+  'Helvetica': StandardFonts.Helvetica,
+  'Helvetica-Bold': StandardFonts.HelveticaBold,
+  'Helvetica-Oblique': StandardFonts.HelveticaOblique,
+  'Helvetica-BoldOblique': StandardFonts.HelveticaBoldOblique,
+  'Times-Roman': StandardFonts.TimesRoman,
+  'Times-Bold': StandardFonts.TimesRomanBold,
+  'Times-Italic': StandardFonts.TimesRomanItalic,
+  'Times-BoldItalic': StandardFonts.TimesRomanBoldItalic,
+  'Courier': StandardFonts.Courier,
+  'Courier-Bold': StandardFonts.CourierBold,
+  'Courier-Oblique': StandardFonts.CourierOblique,
+  'Courier-BoldOblique': StandardFonts.CourierBoldOblique,
+  'Symbol': StandardFonts.Symbol,
+  'ZapfDingbats': StandardFonts.ZapfDingbats,
+}
 
 export const Font = {
   register(source: FontSource | FontSource[]): void {
@@ -40,10 +58,6 @@ export const Font = {
     fontLoadPromises.clear()
   },
 
-  /**
-   * Pre-load all registered fonts that have URL sources.
-   * Call this before rendering if you've registered fonts with HTTP URLs.
-   */
   async load(): Promise<void> {
     const promises: Promise<void>[] = []
 
@@ -66,7 +80,7 @@ export const Font = {
             return res.arrayBuffer()
           })
           .then((buf) => {
-            s.src = Buffer.from(buf)
+            s.src = new Uint8Array(buf)
             s.loaded = true
           })
 
@@ -126,20 +140,69 @@ export function resolveFontName(style: ResolvedStyle): string {
   }
 }
 
-export function registerFontsOnDocument(doc: any): void {
-  for (const [family, sources] of registeredFonts) {
-    for (const source of sources) {
-      if (!source.loaded) continue
-      try {
-        const fontName = family
-        if (typeof source.src === 'string') {
-          doc.registerFont(fontName, source.src)
-        } else {
-          doc.registerFont(fontName, source.src as any)
+/**
+ * Scan a node tree and collect all font names that will be needed.
+ * Accepts a resolveStyle function to avoid circular dependency.
+ */
+export function collectFontNames(
+  node: any,
+  resolveStyleFn: (style: any) => ResolvedStyle,
+): Set<string> {
+  const names = new Set<string>()
+  names.add('Helvetica')
+
+  function walk(n: any) {
+    if (typeof n === 'string') return
+    if (n.props?.style) {
+      const style = resolveStyleFn(n.props.style)
+      names.add(resolveFontName(style))
+    }
+    if (n.children) {
+      for (const child of n.children) walk(child)
+    }
+  }
+
+  walk(node)
+  return names
+}
+
+/**
+ * Embed all needed fonts into the pdf-lib document.
+ * Returns a map of fontName → PDFFont for use during layout and rendering.
+ */
+export async function embedAllFonts(
+  pdfDoc: PDFDocument,
+  fontNames: Set<string>,
+): Promise<Map<string, PDFFont>> {
+  const fontMap = new Map<string, PDFFont>()
+
+  for (const name of fontNames) {
+    const stdEnum = STANDARD_FONT_MAP[name]
+    if (stdEnum) {
+      fontMap.set(name, await pdfDoc.embedFont(stdEnum))
+      continue
+    }
+
+    if (registeredFonts.has(name)) {
+      const sources = registeredFonts.get(name)!
+      const source = sources.find((s) => s.loaded) || sources[0]
+      if (source && source.loaded && typeof source.src !== 'string') {
+        try {
+          fontMap.set(name, await pdfDoc.embedFont(source.src as Uint8Array))
+        } catch {
+          // Fall back to Helvetica if font embedding fails
         }
-      } catch {
-        // Font registration may fail if already registered or invalid
       }
     }
   }
+
+  if (!fontMap.has('Helvetica')) {
+    fontMap.set('Helvetica', await pdfDoc.embedFont(StandardFonts.Helvetica))
+  }
+
+  return fontMap
+}
+
+export function getFontFromMap(fontMap: Map<string, PDFFont>, fontName: string): PDFFont {
+  return fontMap.get(fontName) || fontMap.get('Helvetica')!
 }

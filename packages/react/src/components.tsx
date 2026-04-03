@@ -84,3 +84,38 @@ export function Link({ children }: LinkComponentProps) {
   return <>{children}</>
 }
 ;(Link as any).__pdfType = 'LINK'
+
+export interface TableComponentProps {
+  style?: PDFStyle | PDFStyle[]
+  wrap?: boolean
+  children?: ReactNode
+}
+
+export function Table({ children }: TableComponentProps) {
+  return <>{children}</>
+}
+;(Table as any).__pdfType = 'VIEW'
+;(Table as any).__pdfTableHint = 'TABLE'
+
+export interface TableRowComponentProps {
+  style?: PDFStyle | PDFStyle[]
+  children?: ReactNode
+}
+
+export function TableRow({ children }: TableRowComponentProps) {
+  return <>{children}</>
+}
+;(TableRow as any).__pdfType = 'VIEW'
+;(TableRow as any).__pdfTableHint = 'TABLE_ROW'
+
+export interface TableCellComponentProps {
+  style?: PDFStyle | PDFStyle[]
+  colSpan?: number
+  children?: ReactNode
+}
+
+export function TableCell({ children }: TableCellComponentProps) {
+  return <>{children}</>
+}
+;(TableCell as any).__pdfType = 'VIEW'
+;(TableCell as any).__pdfTableHint = 'TABLE_CELL'

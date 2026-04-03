@@ -6,6 +6,9 @@ import {
   Text,
   Image,
   Link,
+  Table,
+  TableRow,
+  TableCell,
   type PDFNode,
   type PDFChild,
 } from '@pdfcraft/core'
@@ -66,6 +69,9 @@ function processVNode(vnode: VNode): PDFChild | null {
       case 'PAGE':
         return Page(props as any, childNodes)
       case 'VIEW':
+        if (type.__pdfTableHint === 'TABLE') return Table(props as any, childNodes)
+        if (type.__pdfTableHint === 'TABLE_ROW') return TableRow(props as any, childNodes)
+        if (type.__pdfTableHint === 'TABLE_CELL') return TableCell(props as any, childNodes)
         return View(props as any, childNodes)
       case 'TEXT':
         return Text(props as any, childNodes)
