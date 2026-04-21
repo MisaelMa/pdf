@@ -11,9 +11,18 @@ import { resolveFontName, collectFontNames, embedAllFonts, getFontFromMap, Font 
 import { fetchImage } from './image-loader'
 import { initYoga, buildYogaTree, wrapText } from './yoga-layout'
 
+const fieldNameCounters = new Map<string, number>()
+
+function resolveFieldName(baseName: string): string {
+  const count = (fieldNameCounters.get(baseName) ?? 0) + 1
+  fieldNameCounters.set(baseName, count)
+  return count === 1 ? baseName : `${baseName}_${count}`
+}
+
 export async function renderToBuffer(documentNode: PDFNode): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   pdfDoc.registerFontkit(fontkit)
+  fieldNameCounters.clear()
 
   const props = documentNode.props
   if (props.title) pdfDoc.setTitle(props.title)
@@ -211,7 +220,8 @@ function addNewPage(
 function flattenForWrapping(layouts: LayoutNode[]): LayoutNode[] {
   const result: LayoutNode[] = []
   function walk(layout: LayoutNode) {
-    const hasVisual = layout.textContent || layout.node.type === 'IMAGE' || layout.style.backgroundColor || layout.style.borderWidth > 0
+    const isFormField = layout.node.type === 'INPUT' || layout.node.type === 'CHECKBOX' || layout.node.type === 'SELECT'
+    const hasVisual = layout.textContent || layout.node.type === 'IMAGE' || isFormField || layout.style.backgroundColor || layout.style.borderWidth > 0
     if (hasVisual) result.push(layout)
     if (layout.node.type === 'LINK' && layout.node.props.src && !hasVisual) result.push(layout)
     for (const child of layout.children) walk(child)
@@ -264,6 +274,10 @@ async function renderLayoutNode(
   if (node.type === 'IMAGE' && node.props.src) {
     await renderImage(pdfDoc, page, layout, pageHeight)
   }
+
+  if (node.type === 'INPUT') renderInputField(pdfDoc, page, layout, fontMap, pageHeight)
+  if (node.type === 'CHECKBOX') renderCheckboxField(pdfDoc, page, layout, pageHeight)
+  if (node.type === 'SELECT') renderSelectField(pdfDoc, page, layout, fontMap, pageHeight)
 
   for (const child of children) await renderLayoutNode(pdfDoc, page, child, fontMap, pageHeight)
 }
@@ -374,6 +388,93 @@ async function renderImage(
   }
 
   page.drawImage(image, { x: drawX, y: pageHeight - drawY - drawH, width: drawW, height: drawH, opacity: style.opacity })
+}
+
+// ── Form fields (AcroForm) ──────────────────────────────────────────
+
+function renderInputField(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  layout: LayoutNode,
+  fontMap: Map<string, PDFFont>,
+  pageHeight: number,
+): void {
+  const { x, y, width, height, style, node } = layout
+  const pdfY = pageHeight - y - height
+  const form = pdfDoc.getForm()
+  const fieldName = resolveFieldName(node.props.name || 'input')
+  const field = form.createTextField(fieldName)
+
+  if (node.props.value) field.setText(node.props.value)
+  if (node.props.multiline) field.enableMultiline()
+  if (node.props.readOnly) field.enableReadOnly()
+  if (node.props.maxLength) field.setMaxLength(node.props.maxLength)
+
+  const fontName = resolveFontName(style)
+  const font = getFontFromMap(fontMap, fontName)
+
+  field.addToPage(page, {
+    x, y: pdfY, width, height,
+    textColor: parseColor(style.color),
+    backgroundColor: style.backgroundColor ? parseColor(style.backgroundColor) : rgb(1, 1, 1),
+    borderColor: style.borderWidth > 0 ? parseColor(style.borderColor) : rgb(0.75, 0.75, 0.75),
+    borderWidth: style.borderWidth || 1,
+    font,
+  })
+  field.setFontSize(style.fontSize)
+}
+
+function renderCheckboxField(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  layout: LayoutNode,
+  pageHeight: number,
+): void {
+  const { x, y, width, height, style, node } = layout
+  const pdfY = pageHeight - y - height
+  const form = pdfDoc.getForm()
+  const fieldName = resolveFieldName(node.props.name || 'checkbox')
+  const field = form.createCheckBox(fieldName)
+
+  field.addToPage(page, {
+    x, y: pdfY, width, height,
+    backgroundColor: style.backgroundColor ? parseColor(style.backgroundColor) : rgb(1, 1, 1),
+    borderColor: style.borderWidth > 0 ? parseColor(style.borderColor) : rgb(0.75, 0.75, 0.75),
+    borderWidth: style.borderWidth || 1,
+  })
+
+  if (node.props.checked) field.check()
+}
+
+function renderSelectField(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  layout: LayoutNode,
+  fontMap: Map<string, PDFFont>,
+  pageHeight: number,
+): void {
+  const { x, y, width, height, style, node } = layout
+  const pdfY = pageHeight - y - height
+  const form = pdfDoc.getForm()
+  const fieldName = resolveFieldName(node.props.name || 'select')
+  const field = form.createDropdown(fieldName)
+
+  const options: string[] = node.props.options || []
+  if (options.length) field.addOptions(options)
+  if (node.props.value && options.includes(node.props.value)) field.select(node.props.value)
+
+  const fontName = resolveFontName(style)
+  const font = getFontFromMap(fontMap, fontName)
+
+  field.addToPage(page, {
+    x, y: pdfY, width, height,
+    textColor: parseColor(style.color),
+    backgroundColor: style.backgroundColor ? parseColor(style.backgroundColor) : rgb(1, 1, 1),
+    borderColor: style.borderWidth > 0 ? parseColor(style.borderColor) : rgb(0.75, 0.75, 0.75),
+    borderWidth: style.borderWidth || 1,
+    font,
+  })
+  field.setFontSize(style.fontSize)
 }
 
 // ── Rounded rectangle with bezier curves ────────────────────────────

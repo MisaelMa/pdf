@@ -17,6 +17,9 @@ export {
   PDFTable,
   PDFTableRow,
   PDFTableCell,
+  PDFInput,
+  PDFCheckbox,
+  PDFSelect,
 } from './components/pdf-components'
 
 // Tree builder (advanced usage)
@@ -33,6 +36,9 @@ export {
   Table,
   TableRow,
   TableCell,
+  Input,
+  Checkbox,
+  Select,
   StyleSheet,
   Font,
   renderToBuffer,
@@ -56,4 +62,7 @@ export type {
   TableProps,
   TableRowProps,
   TableCellProps,
+  InputProps,
+  CheckboxProps,
+  SelectProps,
 } from '@pdf.js/core'

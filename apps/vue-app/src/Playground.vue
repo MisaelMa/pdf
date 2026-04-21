@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Font,
   renderToBlob,
+  PDFInput,
 } from '@pdf.js/vue'
 import type { PDFNode } from '@pdf.js/vue'
 
@@ -72,6 +73,8 @@ return (
         <Text style={styles.badge}>Svelte</Text>
         <Text style={styles.badge}>SSR</Text>
       </View>
+
+                <PDFInput name="name" value="John Doe" ></PDFInput>
 
       <Table style={{ marginBottom: 14, borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 6 }}>
         <TableRow style={{ backgroundColor: '#1e293b' }}>

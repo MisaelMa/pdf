@@ -1,6 +1,7 @@
 {
   "name": "astro-app",
   "private": true,
+  "description": "Sitio Astro: landing PDFCraft / Recreando + demo PDF y playground",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

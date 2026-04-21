@@ -1,0 +1,452 @@
+---
+import '../styles/global.css'
+
+const installCore = 'pnpm add @pdf.js/core'
+const installVue = 'pnpm add @pdf.js/vue'
+const year = new Date().getFullYear()
+const playgroundRaw = import.meta.env.PUBLIC_PLAYGROUND_URL
+let playgroundBase = ''
+if (typeof playgroundRaw === 'string' && playgroundRaw.length > 0) {
+  playgroundBase = playgroundRaw.replace(/\/$/, '')
+} else if (import.meta.env.DEV) {
+  playgroundBase = 'http://localhost:4321'
+}
+const demoHref = playgroundBase ? `${playgroundBase}/demo` : '/demo'
+const serverSnippet = `// Ejemplo: respuesta PDF
+const bytes = await document.save()
+return new Response(bytes, {
+  headers: { 'Content-Type': 'application/pdf' },
+})`
+
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="PDF UI — componentes PDF para Vue, React y Svelte. Por Recreando."
+    />
+    <title>PDF UI — componentes PDF para Vue, React y Svelte · Recreando</title>
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('pdf-ui-theme')
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        var dark = stored === 'dark' || ((stored === 'system' || stored === null) && prefersDark)
+        if (dark) document.documentElement.classList.add('dark')
+      })()
+    </script>
+  </head>
+  <body
+    class="min-h-screen antialiased bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50"
+  >
+    <header
+      class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80"
+    >
+      <div
+        class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
+      >
+        <a
+          href="/"
+          class="font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
+          >PDF UI <span class="text-zinc-500 dark:text-zinc-400">· Recreando</span></a>
+        <nav class="flex items-center gap-1 sm:gap-4" aria-label="Principal">
+          <a
+            href="#workflow"
+            class="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 sm:inline dark:text-zinc-400 dark:hover:text-zinc-50"
+            >Producto</a>
+          <a
+            href="#components"
+            class="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 md:inline dark:text-zinc-400 dark:hover:text-zinc-50"
+            >Componentes</a>
+          <a
+            href="#compat"
+            class="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 lg:inline dark:text-zinc-400 dark:hover:text-zinc-50"
+            >Compatibilidad</a>
+          <a
+            href={demoHref}
+            class="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >Demo</a>
+          <a
+            href="https://recreando.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >recreando.dev</a>
+          <button
+            type="button"
+            id="pdf-ui-theme-toggle"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            aria-label="Cambiar tema"
+          >
+            <span class="hidden dark:inline" aria-hidden="true">&#9728;</span>
+            <span class="inline dark:hidden" aria-hidden="true">&#9790;</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
+          <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <span
+              class="rounded-full border border-zinc-200 bg-white px-3 py-1 font-medium dark:border-zinc-800 dark:bg-zinc-900"
+              >PDF UI multi-framework</span>
+            <span
+              class="rounded-full border border-zinc-200 bg-white px-3 py-1 dark:border-zinc-800 dark:bg-zinc-900"
+              >Open source · MIT</span>
+          </div>
+          <h1
+            class="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-zinc-50"
+          >
+            PDFs con Vue, React y Svelte. Sin magia — solo componentes.
+          </h1>
+          <p
+            class="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-600 dark:text-zinc-400"
+          >
+            Instala, compones y generas. PDF UI ofrece un motor con <code
+              class="rounded-md bg-zinc-200/60 px-1.5 py-0.5 font-mono text-sm dark:bg-zinc-800"
+              >pdf-lib</code>
+            y Yoga, paquetes por framework y un playground para iterar. Un proyecto de <a
+              href="https://recreando.dev"
+              class="font-medium text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-600 dark:text-zinc-50 dark:decoration-zinc-600"
+              >Recreando</a>.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a
+              href={demoHref}
+              class="inline-flex h-11 items-center justify-center rounded-lg bg-zinc-900 px-5 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >Probar demo</a>
+            <a
+              href="#how"
+              class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              >Cómo funciona</a>
+            <a
+              href="#components"
+              class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              >Ver piezas</a>
+          </div>
+          <div
+            class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            <a href="#workflow" class="hover:text-zinc-900 dark:hover:text-zinc-50">Flujo de trabajo</a>
+            <span class="text-zinc-300 dark:text-zinc-600" aria-hidden="true">·</span>
+            <a href={demoHref} class="hover:text-zinc-900 dark:hover:text-zinc-50">Playground</a>
+            <span class="text-zinc-300 dark:text-zinc-600" aria-hidden="true">·</span>
+            <a href="#components" class="hover:text-zinc-900 dark:hover:text-zinc-50">Biblioteca</a>
+          </div>
+          <div
+            class="mt-8 rounded-xl border border-zinc-200 bg-zinc-950 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
+          >
+            <code class="font-mono text-sm text-zinc-100">{installCore}</code>
+          </div>
+          <p class="mt-4 text-sm text-zinc-500 dark:text-zinc-500">
+            MIT · Paquetes npm <code class="font-mono text-zinc-700 dark:text-zinc-300">@pdf.js/*</code>
+          </p>
+        </div>
+      </section>
+
+      <section id="workflow" class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <p class="text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+            Workflow
+          </p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Más rápido de integrar, más claro de mantener
+          </h2>
+          <p class="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            Un núcleo compartido y herramientas por ecosistema, con demo lista para probar sin montar tu propio
+            servidor primero.
+          </p>
+          <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <article
+              class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
+            >
+              <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Vue, React y Svelte</h3>
+              <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Paquetes <code class="font-mono text-xs">@pdf.js/vue</code>, <code class="font-mono text-xs"
+                  >@pdf.js/react</code> y <code class="font-mono text-xs">@pdf.js/svelte</code> sobre el mismo core.
+              </p>
+              <a href="#compat" class="mt-4 text-sm font-semibold text-zinc-900 dark:text-zinc-50"
+                >Requisitos →</a>
+            </article>
+            <article
+              class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/50"
+            >
+              <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Playground</h3>
+              <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Editor y vista previa en el navegador más PDF generado en servidor (Astro) en la app de demo.
+              </p>
+              <a href={demoHref} class="mt-4 text-sm font-semibold text-zinc-900 dark:text-zinc-50"
+                >Abrir demo →</a>
+            </article>
+            <article
+              class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/50 sm:col-span-2 lg:col-span-1"
+            >
+              <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Core estable</h3>
+              <p class="mt-2 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Layout con Yoga y dibujo con pdf-lib: TypeScript y salida predecible.
+              </p>
+              <a href="#how" class="mt-4 text-sm font-semibold text-zinc-900 dark:text-zinc-50"
+                >Ver pasos →</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Cómo funciona</h2>
+          <p class="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            Dependencias npm en tu repo: compones el árbol y obtienes bytes de PDF donde ejecutes (Node, servidor,
+            etc.).
+          </p>
+          <ol class="mt-12 space-y-10">
+            <li class="flex gap-4 sm:gap-6">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+                >1</span>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Instala</h3>
+                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Core + el paquete de tu framework.</p>
+                <pre
+                  class="mt-3 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-950 p-4 text-sm dark:border-zinc-800"><code class="font-mono text-zinc-100">{installCore}</code></pre>
+                <pre
+                  class="mt-2 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-950 p-4 text-sm dark:border-zinc-800"><code class="font-mono text-zinc-100">{installVue}</code></pre>
+              </div>
+            </li>
+            <li class="flex gap-4 sm:gap-6">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+                >2</span>
+              <div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Compón la UI</h3>
+                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  Usa los componentes de tu adaptador; el core resuelve layout y render.
+                </p>
+                <pre
+                  class="mt-3 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-950 p-4 text-sm dark:border-zinc-800"><code class="font-mono text-zinc-100">&lt;PdfDocument&gt; … &lt;/PdfDocument&gt;</code></pre>
+              </div>
+            </li>
+            <li class="flex gap-4 sm:gap-6">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-sm font-bold text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+                >3</span>
+              <div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Genera el PDF</h3>
+                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  Buffer o archivo para descarga, email o respuesta HTTP.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="components" class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <p class="text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+            Component library
+          </p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Piezas para PDFs reales
+          </h2>
+          <p class="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            Previews estáticas; el set crece con el monorepo. Galería tipo PDFx, adaptada a PDF UI.
+          </p>
+          <div class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">Document / Page</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Raíz del documento</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">View / Box</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Flex y contenedores</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">Text</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Tipografía y wrapping</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">Image</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Assets incrustados</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">Core layout</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Yoga + pdf-lib</p>
+            </div>
+            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div class="mb-3 h-24 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/50"></div>
+              <p class="font-semibold text-zinc-900 dark:text-zinc-50">Vite plugin</p>
+              <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">@pdf.js/vite-plugin</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="why" class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <p class="text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">Why PDF UI</p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Pensado para no estorbarte
+          </h2>
+          <div class="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">Multi-framework</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Misma base, APIs acordes a Vue, React o Svelte.
+              </p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">TypeScript</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Tipos en core y adaptadores; errores antes de runtime.
+              </p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">PDF nativo</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Vectorial con pdf-lib, no solo capturas.
+              </p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">Open source</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                MIT para proyectos personales y comerciales.
+              </p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">DX</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Playground y ejemplos en el monorepo.
+              </p>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">Recreando</h3>
+              <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Ecosistema <a href="https://recreando.dev" class="font-medium underline">recreando.dev</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="compat" class="border-b border-zinc-200 dark:border-zinc-800">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+          <p class="text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+            Compatibility
+          </p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Funciona donde desarrollas
+          </h2>
+          <p class="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
+            pnpm, npm, yarn o bun; monorepos compatibles.
+          </p>
+          <div class="mt-10 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            <table class="w-full text-left text-sm">
+              <thead class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80">
+                <tr>
+                  <th class="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Requisito</th>
+                  <th class="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Notas</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-950/30">
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-zinc-900 dark:text-zinc-100">Node.js</td>
+                  <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">LTS recomendado</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-zinc-900 dark:text-zinc-100">Vue</td>
+                  <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">≥ 3.3 (peer @pdf.js/vue)</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-zinc-900 dark:text-zinc-100">React</td>
+                  <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">18 o 19 (peer @pdf.js/react)</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-zinc-900 dark:text-zinc-100">Svelte</td>
+                  <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">4 o 5 (peer @pdf.js/svelte)</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-zinc-900 dark:text-zinc-100">pdfjs-dist</td>
+                  <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">Opcional (viewer en Vue)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-10">
+            <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Listo para servidor</h3>
+            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Genera en Node sin APIs del navegador; útil en handlers HTTP.
+            </p>
+            <pre
+              class="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-950 p-4 text-sm dark:border-zinc-800"><code class="font-mono text-zinc-100">{serverSnippet}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="px-4 py-20 sm:px-6">
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">¿Listo para construir?</h2>
+          <p class="mt-4 text-zinc-600 dark:text-zinc-400">
+            Abre el demo, explora el monorepo y publica con Changesets cuando toque release.
+          </p>
+          <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <a
+              href={demoHref}
+              class="inline-flex h-11 items-center justify-center rounded-lg bg-zinc-900 px-5 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >Abrir demo</a>
+            <a
+              href="#how"
+              class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              >Ver pasos</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-zinc-200 py-10 dark:border-zinc-800">
+      <div class="mx-auto max-w-6xl px-4 text-center text-sm text-zinc-500 dark:text-zinc-500 sm:px-6">
+        © {year} Recreando — <a href="https://recreando.dev" class="text-zinc-700 hover:underline dark:text-zinc-400"
+          >recreando.dev</a>
+        · PDF UI no está afiliado a <a
+          href="https://pdfx.akashpise.dev/"
+          class="text-zinc-700 hover:underline dark:text-zinc-400">PDFx</a>; compartimos la idea de buena experiencia para PDFs en código.
+      </div>
+    </footer>
+
+    <script is:inline>
+      ;(function () {
+        var btn = document.getElementById('pdf-ui-theme-toggle')
+        if (!btn) return
+        btn.addEventListener('click', function () {
+          var root = document.documentElement
+          var next = root.classList.contains('dark') ? 'light' : 'dark'
+          if (next === 'dark') {
+            root.classList.add('dark')
+            localStorage.setItem('pdf-ui-theme', 'dark')
+          } else {
+            root.classList.remove('dark')
+            localStorage.setItem('pdf-ui-theme', 'light')
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>

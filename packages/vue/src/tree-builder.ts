@@ -9,6 +9,9 @@ import {
   Table,
   TableRow,
   TableCell,
+  Input,
+  Checkbox,
+  Select,
   type PDFNode,
   type PDFChild,
 } from '@pdf.js/core'
@@ -79,6 +82,12 @@ function processVNode(vnode: VNode): PDFChild | null {
         return Image(props as any)
       case 'LINK':
         return Link(props as any, childNodes)
+      case 'INPUT':
+        return Input(props as any)
+      case 'CHECKBOX':
+        return Checkbox(props as any)
+      case 'SELECT':
+        return Select(props as any)
     }
   }
 

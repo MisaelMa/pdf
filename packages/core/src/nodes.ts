@@ -10,6 +10,9 @@ import type {
   TableProps,
   TableRowProps,
   TableCellProps,
+  InputProps,
+  CheckboxProps,
+  SelectProps,
 } from './types'
 
 export function Document(
@@ -88,4 +91,16 @@ export function TableCell(
   }
   const normalized = Array.isArray(children) ? children.flat() : [children]
   return { type: 'VIEW', props: { ...props, style: mergedStyle }, children: normalized }
+}
+
+export function Input(props: InputProps): PDFNode {
+  return { type: 'INPUT', props, children: [] }
+}
+
+export function Checkbox(props: CheckboxProps): PDFNode {
+  return { type: 'CHECKBOX', props, children: [] }
+}
+
+export function Select(props: SelectProps): PDFNode {
+  return { type: 'SELECT', props, children: [] }
 }

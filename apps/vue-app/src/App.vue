@@ -8,6 +8,9 @@ import {
   PDFText,
   PDFLink,
   StyleSheet,
+  PDFInput,
+  PDFCheckbox,
+  PDFSelect,
 } from '@pdf.js/vue'
 import Playground from './Playground.vue'
 import PDFCanvasViewer from './PDFCanvasViewer.vue'
@@ -153,8 +156,11 @@ const styles = StyleSheet.create({
             <PDFText :style="styles.badge">Svelte</PDFText>
             <PDFText :style="styles.badge">Nuxt SSR</PDFText>
             <PDFText :style="styles.badge">Next SSR</PDFText>
+            
+            <PDFCheckbox name="agree" checked label="I agree to the terms and conditions" />
+            
           </PDFView>
-
+          <PDFInput name="name" value="John Doe" />
           <PDFView :style="styles.section">
             <PDFText :style="styles.sectionTitle">Styled components</PDFText>
             <PDFText :style="styles.text">

@@ -1,4 +1,4 @@
-export { Document, Page, View, Text, Image, Link, Table, TableRow, TableCell } from './nodes'
+export { Document, Page, View, Text, Image, Link, Table, TableRow, TableCell, Input, Checkbox, Select } from './nodes'
 export { StyleSheet, resolveStyle } from './stylesheet'
 export { Font } from './font'
 export { resolvePageSize } from './page-sizes'
@@ -29,4 +29,7 @@ export type {
   TableProps,
   TableRowProps,
   TableCellProps,
+  InputProps,
+  CheckboxProps,
+  SelectProps,
 } from './types'

@@ -133,7 +133,30 @@ export interface TableCellProps {
   colSpan?: number
 }
 
-export type PDFNodeType = 'DOCUMENT' | 'PAGE' | 'VIEW' | 'TEXT' | 'IMAGE' | 'LINK'
+export interface InputProps {
+  name: string
+  value?: string
+  multiline?: boolean
+  maxLength?: number
+  readOnly?: boolean
+  style?: PDFStyle | PDFStyle[]
+}
+
+export interface CheckboxProps {
+  name: string
+  checked?: boolean
+  label?: string
+  style?: PDFStyle | PDFStyle[]
+}
+
+export interface SelectProps {
+  name: string
+  options: string[]
+  value?: string
+  style?: PDFStyle | PDFStyle[]
+}
+
+export type PDFNodeType = 'DOCUMENT' | 'PAGE' | 'VIEW' | 'TEXT' | 'IMAGE' | 'LINK' | 'INPUT' | 'CHECKBOX' | 'SELECT'
 
 export interface PDFNode {
   type: PDFNodeType

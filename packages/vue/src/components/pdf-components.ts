@@ -1,6 +1,8 @@
 import { defineComponent, type PropType } from 'vue'
 import type { PDFStyle, PageSize, PageOrientation } from '@pdf.js/core'
 
+type StringArray = string[]
+
 function pdfComponent(
   name: string,
   pdfType: string,
@@ -99,5 +101,28 @@ export const PDFTableRow = pdfTableComponent('PDFTableRow', 'TABLE_ROW', {
 
 export const PDFTableCell = pdfTableComponent('PDFTableCell', 'TABLE_CELL', {
   colSpan: { type: Number, default: 1 },
+  ...styleProp,
+})
+
+export const PDFInput = pdfComponent('PDFInput', 'INPUT', {
+  name: { type: String, required: true },
+  value: { type: String, default: '' },
+  multiline: { type: Boolean, default: false },
+  maxLength: { type: Number, default: undefined },
+  readOnly: { type: Boolean, default: false },
+  ...styleProp,
+})
+
+export const PDFCheckbox = pdfComponent('PDFCheckbox', 'CHECKBOX', {
+  name: { type: String, required: true },
+  checked: { type: Boolean, default: false },
+  label: { type: String, default: undefined },
+  ...styleProp,
+})
+
+export const PDFSelect = pdfComponent('PDFSelect', 'SELECT', {
+  name: { type: String, required: true },
+  options: { type: Array as PropType<StringArray>, required: true },
+  value: { type: String, default: '' },
   ...styleProp,
 })

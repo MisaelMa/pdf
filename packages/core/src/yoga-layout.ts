@@ -78,6 +78,16 @@ function createYogaNode(
     return ygNode
   }
 
+  if (pdfNode.type === 'INPUT' || pdfNode.type === 'CHECKBOX' || pdfNode.type === 'SELECT') {
+    if (style.height == null) {
+      ygNode.setHeight(pdfNode.type === 'CHECKBOX' ? 14 : 24)
+    }
+    if (style.width == null && pdfNode.type === 'CHECKBOX') {
+      ygNode.setWidth(14)
+    }
+    return ygNode
+  }
+
   const childNodes = pdfNode.children.filter(
     (c): c is PDFNode => typeof c !== 'string',
   )
